@@ -14,6 +14,7 @@ import { EmailInput } from "@/components/ui/email-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { checkEmailAllowed } from "@/lib/invite-check";
 import { cn } from "@/lib/utils";
 import { supabaseClient } from "@/providers/supabase-client";
 import { useLogin, useRefineOptions } from "@refinedev/core";
@@ -32,6 +33,13 @@ export const SignInForm = () => {
     e.preventDefault();
     setIsSending(true);
     setSendError("");
+
+    const inviteError = await checkEmailAllowed(email);
+    if (inviteError) {
+      setSendError(inviteError);
+      setIsSending(false);
+      return;
+    }
 
     const { error } = await supabaseClient.auth.signInWithOtp({
       email,
@@ -95,7 +103,10 @@ export const SignInForm = () => {
                   id="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setSendError("");
+                  }}
                 />
               </div>
               {sendError && (
