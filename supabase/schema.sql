@@ -195,6 +195,19 @@ $$;
 ALTER FUNCTION "public"."is_email_allowed"("p_email" "text") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."is_email_invitable"("p_email" "text") RETURNS boolean
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+  SELECT NOT EXISTS (
+    SELECT 1 FROM auth.users WHERE email = lower(p_email)
+  );
+$$;
+
+
+ALTER FUNCTION "public"."is_email_invitable"("p_email" "text") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."log_time_entry_change"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     AS $$
@@ -686,6 +699,12 @@ GRANT ALL ON FUNCTION "public"."has_role_permission"("p_permission" "public"."pe
 GRANT ALL ON FUNCTION "public"."is_email_allowed"("p_email" "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."is_email_allowed"("p_email" "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."is_email_allowed"("p_email" "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."is_email_invitable"("p_email" "text") TO "anon";
+GRANT ALL ON FUNCTION "public"."is_email_invitable"("p_email" "text") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."is_email_invitable"("p_email" "text") TO "service_role";
 
 
 
