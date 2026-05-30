@@ -183,10 +183,9 @@ CREATE OR REPLACE FUNCTION "public"."is_email_allowed"("p_email" "text") RETURNS
     SET "search_path" TO 'public'
     AS $$
   SELECT EXISTS (
-    SELECT 1 FROM public.invites  WHERE email = lower(p_email)
+    SELECT 1 FROM public.invites WHERE email = lower(p_email)
     UNION ALL
-    SELECT 1 FROM auth.users      WHERE email = lower(p_email)
-    LIMIT 1
+    SELECT 1 FROM auth.users     WHERE email = lower(p_email)
   );
 $$;
 

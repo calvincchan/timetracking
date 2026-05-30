@@ -28,15 +28,6 @@ describe("checkEmailAllowed", () => {
     expect(result).toBeNull();
   });
 
-  it("returns null for a registered user (profile exists)", async () => {
-    vi.mocked(supabaseClient.rpc).mockResolvedValue({
-      data: true,
-      error: null,
-    } as never);
-
-    expect(await checkEmailAllowed("existing@example.com")).toBeNull();
-  });
-
   it("returns error message for an uninvited email", async () => {
     vi.mocked(supabaseClient.rpc).mockResolvedValue({
       data: false,

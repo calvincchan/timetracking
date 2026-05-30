@@ -9,10 +9,9 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
   SELECT EXISTS (
-    SELECT 1 FROM public.invites  WHERE email = lower(p_email)
+    SELECT 1 FROM public.invites WHERE email = lower(p_email)
     UNION ALL
-    SELECT 1 FROM auth.users      WHERE email = lower(p_email)
-    LIMIT 1
+    SELECT 1 FROM auth.users     WHERE email = lower(p_email)
   );
 $$;
 
