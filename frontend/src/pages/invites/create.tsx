@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { checkEmailInvitable } from "@/lib/invite-utils";
 import { Constants } from "@/types/database";
 import { useNavigation } from "@refinedev/core";
 import { useForm } from "@refinedev/react-hook-form";
@@ -91,6 +92,10 @@ export function InviteCreate() {
                 pattern: {
                   value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
                   message: "Enter a valid email address",
+                },
+                validate: async (value) => {
+                  if (!value) return true;
+                  return (await checkEmailInvitable(value)) ?? true;
                 },
               })}
               placeholder="colleague@example.com"

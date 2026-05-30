@@ -259,6 +259,7 @@ export type Database = {
         Returns: boolean
       }
       is_email_allowed: { Args: { p_email: string }; Returns: boolean }
+      is_email_invitable: { Args: { p_email: string }; Returns: boolean }
     }
     Enums: {
       employment_type: "paid" | "volunteer"
