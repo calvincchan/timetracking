@@ -43,7 +43,7 @@ export const SignInForm = () => {
 
     const { error } = await supabaseClient.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: false },
+      options: { shouldCreateUser: true },
     });
 
     setIsSending(false);
