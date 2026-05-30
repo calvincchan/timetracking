@@ -116,6 +116,8 @@ App runs at [http://localhost:5173](http://localhost:5173).
 4. A database trigger (`handle_new_user`) creates a `profiles` row with the correct role and full name from the invite, then deletes the invite.
 5. The session JWT contains a `user_role` claim (injected by `custom_access_token_hook`) — this is what drives all RLS policy checks.
 
+> **`enable_confirmations` must be `true`** in `supabase/config.toml` under `[auth.email]` (already set correctly in this repo). If it is `false`, GoTrue auto-confirms new users the moment they are created, so the `handle_new_user` trigger fires and deletes the invite row before the Supervisor ever sees it in the list. The invite disappears immediately and the invites table appears empty.
+
 ---
 
 ## Project Structure
