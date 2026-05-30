@@ -20,6 +20,7 @@ import { useForm } from "@refinedev/react-hook-form";
 import { useState } from "react";
 import { Controller } from "react-hook-form";
 import { supabaseClient } from "@/providers/supabase-client";
+import { checkEmailConflict } from "@/lib/invite-validation";
 
 const ROLE_OPTIONS = Constants.public.Enums.user_role;
 
@@ -30,8 +31,11 @@ export function InviteCreate() {
   const {
     register,
     control,
+    handleSubmit,
+    setError,
     saveButtonProps,
     formState: { errors },
+    refineCore: { onFinish },
   } = useForm({
     refineCoreProps: {
       resource: "invites",
@@ -55,6 +59,21 @@ export function InviteCreate() {
       role: "Member" as (typeof ROLE_OPTIONS)[number],
     },
   });
+
+  const wrappedOnFinish = async (values: Record<string, string>) => {
+    const conflict = await checkEmailConflict(values.email, supabaseClient);
+    if (conflict === "profile_exists") {
+      setError("email", { message: "This email already has an account" });
+      return;
+    }
+    if (conflict === "invite_exists") {
+      setError("email", {
+        message: "An invite is already pending for this email",
+      });
+      return;
+    }
+    return onFinish(values as Parameters<typeof onFinish>[0]);
+  };
 
   return (
     <CreateView className="p-6 max-w-lg">
@@ -147,7 +166,9 @@ export function InviteCreate() {
       )}
 
       <div className="flex justify-end">
-        <Button {...saveButtonProps}>Send Invite</Button>
+        <Button {...saveButtonProps} onClick={handleSubmit(wrappedOnFinish)}>
+          Send Invite
+        </Button>
       </div>
     </CreateView>
   );
