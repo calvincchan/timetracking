@@ -14,6 +14,20 @@ afterEach(() => {
 });
 
 describe("checkEmailAllowed", () => {
+  it("returns null when no users exist yet (first-user setup)", async () => {
+    vi.mocked(supabaseClient.rpc).mockResolvedValue({
+      data: true,
+      error: null,
+    } as never);
+
+    const result = await checkEmailAllowed("founder@example.com");
+
+    expect(supabaseClient.rpc).toHaveBeenCalledWith("is_email_allowed", {
+      p_email: "founder@example.com",
+    });
+    expect(result).toBeNull();
+  });
+
   it("returns null for an invited email (row in invites)", async () => {
     vi.mocked(supabaseClient.rpc).mockResolvedValue({
       data: true,
