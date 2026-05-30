@@ -57,3 +57,27 @@ This regenerates:
 
 Never skip this step. Stale types cause silent type errors that are hard to trace.
 Apply migrations first (`npx supabase migration up --local`), then run `bash db-refresh.sh`.
+
+## pgTAP Tests
+
+DB-level behaviour (triggers, RLS policies, helper functions) is tested with pgTAP.
+Test files live in `supabase/tests/*.sql`. Use `BEGIN`/`ROLLBACK` for isolation.
+
+**Run before every commit that touches `supabase/`:**
+```bash
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
+  -f supabase/tests/<test_file>.sql
+```
+
+Or run all test files at once:
+```bash
+for f in supabase/tests/*.sql; do
+  echo "--- $f ---"
+  psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f "$f"
+done
+```
+
+All tests must show only `ok N - …` lines (no `not ok`). Do not commit if any test fails.
+
+**Adding tests:** when a migration changes a trigger, RLS policy, or SECURITY DEFINER
+function, add or update the corresponding test in `supabase/tests/`.
