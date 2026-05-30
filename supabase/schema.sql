@@ -117,19 +117,6 @@ $$;
 ALTER FUNCTION "public"."custom_access_token_hook"("_event" "jsonb") OWNER TO "postgres";
 
 
-CREATE OR REPLACE FUNCTION "public"."email_has_profile"("p_email" "text") RETURNS boolean
-    LANGUAGE "sql" STABLE SECURITY DEFINER
-    SET "search_path" TO 'public', 'auth'
-    AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM auth.users WHERE email = lower(p_email)
-  );
-$$;
-
-
-ALTER FUNCTION "public"."email_has_profile"("p_email" "text") OWNER TO "postgres";
-
-
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -665,12 +652,6 @@ REVOKE ALL ON FUNCTION "public"."custom_access_token_hook"("_event" "jsonb") FRO
 GRANT ALL ON FUNCTION "public"."custom_access_token_hook"("_event" "jsonb") TO "service_role";
 GRANT ALL ON FUNCTION "public"."custom_access_token_hook"("_event" "jsonb") TO "supabase_auth_admin";
 
-
-
-REVOKE ALL ON FUNCTION "public"."email_has_profile"("p_email" "text") FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."email_has_profile"("p_email" "text") TO "anon";
-GRANT ALL ON FUNCTION "public"."email_has_profile"("p_email" "text") TO "authenticated";
-GRANT ALL ON FUNCTION "public"."email_has_profile"("p_email" "text") TO "service_role";
 
 
 

@@ -254,7 +254,6 @@ export type Database = {
     }
     Functions: {
       custom_access_token_hook: { Args: { _event: Json }; Returns: Json }
-      email_has_profile: { Args: { p_email: string }; Returns: boolean }
       has_role_permission: {
         Args: { p_permission: Database["public"]["Enums"]["permissions"] }
         Returns: boolean
