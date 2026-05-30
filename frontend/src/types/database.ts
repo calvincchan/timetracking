@@ -258,6 +258,7 @@ export type Database = {
         Args: { p_permission: Database["public"]["Enums"]["permissions"] }
         Returns: boolean
       }
+      is_email_allowed: { Args: { p_email: string }; Returns: boolean }
     }
     Enums: {
       employment_type: "paid" | "volunteer"

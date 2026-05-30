@@ -147,7 +147,9 @@ export function InviteCreate() {
       )}
 
       <div className="flex justify-end">
-        <Button {...saveButtonProps}>Send Invite</Button>
+        <Button {...saveButtonProps}>
+          Send Invite
+        </Button>
       </div>
     </CreateView>
   );
