@@ -122,35 +122,48 @@ CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     SET "search_path" TO 'public'
     AS $$
 DECLARE
-    is_first_user    BOOLEAN;
-    invited_role     user_role;
+    is_first_user     BOOLEAN;
+    invited_role      user_role;
     invited_full_name TEXT;
 BEGIN
-    SELECT NOT EXISTS (SELECT 1 FROM public.profiles) INTO is_first_user;
+    IF TG_OP = 'INSERT' THEN
+        SELECT NOT EXISTS (SELECT 1 FROM public.profiles) INTO is_first_user;
 
-    IF is_first_user THEN
-        INSERT INTO public.profiles (id, full_name, role)
-        VALUES (
-            new.id,
-            COALESCE(NULLIF(new.raw_user_meta_data->>'full_name', ''), new.email),
-            'Supervisor'
-        );
-    ELSE
-        SELECT role, full_name FROM public.invites
-            WHERE email = new.email
-            INTO invited_role, invited_full_name;
-
-        IF invited_role IS NULL THEN
-            RAISE EXCEPTION 'Registration rejected: Email not invited.';
-        ELSE
+        IF is_first_user THEN
             INSERT INTO public.profiles (id, full_name, role)
             VALUES (
                 new.id,
-                invited_full_name,
-                invited_role
+                COALESCE(NULLIF(new.raw_user_meta_data->>'full_name', ''), new.email),
+                'Supervisor'
             );
-            DELETE FROM public.invites WHERE email = new.email;
+        ELSE
+            IF NOT EXISTS (SELECT 1 FROM public.invites WHERE email = new.email) THEN
+                RAISE EXCEPTION 'Registration rejected: Email not invited.';
+            END IF;
         END IF;
+
+    ELSIF TG_OP = 'UPDATE'
+          AND OLD.email_confirmed_at IS NULL
+          AND NEW.email_confirmed_at IS NOT NULL THEN
+
+        -- Skip if profile already exists (first-user path created it on INSERT)
+        IF EXISTS (SELECT 1 FROM public.profiles WHERE id = new.id) THEN
+            RETURN new;
+        END IF;
+
+        SELECT role, full_name
+          FROM public.invites
+         WHERE email = new.email
+          INTO invited_role, invited_full_name;
+
+        IF invited_role IS NULL THEN
+            RAISE EXCEPTION 'Registration rejected: Email not invited.';
+        END IF;
+
+        INSERT INTO public.profiles (id, full_name, role)
+        VALUES (new.id, invited_full_name, invited_role);
+
+        DELETE FROM public.invites WHERE email = new.email;
     END IF;
 
     RETURN new;
@@ -513,6 +526,10 @@ ALTER TABLE "public"."time_entry_audit_logs" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
+
+
+
+
 
 
 
