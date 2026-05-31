@@ -9,6 +9,7 @@ vi.mock("@/providers/supabase-client", () => ({
 import { supabaseClient } from "@/providers/supabase-client";
 import {
   categoryArchivedFilters,
+  categoryColumnFilters,
   checkCategoryNameAvailable,
 } from "./category-utils";
 
@@ -108,6 +109,18 @@ describe("checkCategoryNameAvailable", () => {
     await checkCategoryNameAvailable("Research");
 
     expect(neqArgs).toEqual([]);
+  });
+});
+
+describe("categoryColumnFilters", () => {
+  it("returns empty array when showArchived is true", () => {
+    expect(categoryColumnFilters(true)).toEqual([]);
+  });
+
+  it("returns is_archived column filter when showArchived is false", () => {
+    expect(categoryColumnFilters(false)).toEqual([
+      { id: "is_archived", value: false },
+    ]);
   });
 });
 
