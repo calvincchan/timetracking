@@ -76,8 +76,8 @@ export function ReportCreate() {
   const navigate = useNavigate();
   const [periodStart, setPeriodStart] = useState<Date | undefined>();
   const [periodEnd, setPeriodEnd] = useState<Date | undefined>();
-  const [userId, setUserId] = useState<string>("");
-  const [categoryId, setCategoryId] = useState<string>("");
+  const [userId, setUserId] = useState<string>("all");
+  const [categoryId, setCategoryId] = useState<string>("all");
   const [previewCount, setPreviewCount] = useState<{ entry_count: number; member_count: number } | null>(null);
   const [dateError, setDateError] = useState<string>("");
   const [generating, setGenerating] = useState(false);
@@ -115,8 +115,8 @@ export function ReportCreate() {
       .rpc("preview_report", {
         period_start: format(periodStart, "yyyy-MM-dd"),
         period_end: format(periodEnd, "yyyy-MM-dd"),
-        ...(userId ? { user_id: userId } : {}),
-        ...(categoryId ? { category_id: categoryId } : {}),
+        ...(userId !== "all" ? { user_id: userId } : {}),
+        ...(categoryId !== "all" ? { category_id: categoryId } : {}),
       })
       .then(({ data }) => {
         if (cancelled) return;
@@ -138,8 +138,8 @@ export function ReportCreate() {
       const { data: reportId, error: rpcError } = await supabaseClient.rpc("generate_report", {
         period_start: format(periodStart, "yyyy-MM-dd"),
         period_end: format(periodEnd, "yyyy-MM-dd"),
-        ...(userId ? { user_id: userId } : {}),
-        ...(categoryId ? { category_id: categoryId } : {}),
+        ...(userId !== "all" ? { user_id: userId } : {}),
+        ...(categoryId !== "all" ? { category_id: categoryId } : {}),
       });
       if (rpcError) throw rpcError;
 
@@ -205,7 +205,7 @@ export function ReportCreate() {
                 <SelectValue placeholder="All members" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All members</SelectItem>
+                <SelectItem value="all">All members</SelectItem>
                 {profiles.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.full_name}
@@ -221,7 +221,7 @@ export function ReportCreate() {
                 <SelectValue placeholder="All categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All categories</SelectItem>
+                <SelectItem value="all">All categories</SelectItem>
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name}

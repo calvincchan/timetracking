@@ -32,8 +32,11 @@ export function buildReportCsv(snapshot: Json): string {
   const entries = toSnapshotEntries(snapshot);
   const lines: string[] = [];
 
+  const toHours = (minutes: number) =>
+    Math.round((minutes / 60) * 100) / 100;
+
   // Summary block
-  lines.push(row("User", "Category", "Total Minutes"));
+  lines.push(row("User", "Category", "Total Hours"));
 
   const summaryMap = new Map<string, number>();
   for (const e of entries) {
@@ -42,17 +45,17 @@ export function buildReportCsv(snapshot: Json): string {
   }
   for (const [key, total] of summaryMap) {
     const [user, category] = key.split("\0");
-    lines.push(row(user, category, total));
+    lines.push(row(user, category, toHours(total)));
   }
 
   // Blank separator
   lines.push("");
 
   // Detail block
-  lines.push(row("Date", "User", "Category", "Duration (minutes)", "Note"));
+  lines.push(row("Date", "User", "Category", "Duration (hours)", "Note"));
   for (const e of entries) {
     lines.push(
-      row(e.entry_date, e.user_full_name, e.category_name, e.duration_minutes, e.note)
+      row(e.entry_date, e.user_full_name, e.category_name, toHours(e.duration_minutes), e.note)
     );
   }
 
