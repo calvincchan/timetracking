@@ -197,6 +197,15 @@ export function MemberWeekView() {
           <span className="min-w-64 text-center text-sm text-muted-foreground">
             {rangeLabel}
           </span>
+          {weekStart.getTime() !== startOfWeek(new Date()).getTime() && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setWeekStart(startOfWeek(new Date()))}
+            >
+              Today
+            </Button>
+          )}
           <Button
             variant="outline"
             size="icon"
