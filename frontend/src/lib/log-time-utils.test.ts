@@ -7,6 +7,7 @@ import {
   resolveMinutes,
   calcDurationMinutes,
   validateDuration,
+  resolveInitialHoursMinutes,
 } from "./log-time-utils";
 
 describe("HOUR_OPTIONS", () => {
@@ -24,11 +25,11 @@ describe("MINUTE_OPTIONS", () => {
 });
 
 describe("defaults", () => {
-  it("DEFAULT_HOURS is 0", () => {
-    expect(DEFAULT_HOURS).toBe(0);
+  it("DEFAULT_HOURS is 1", () => {
+    expect(DEFAULT_HOURS).toBe(1);
   });
-  it("DEFAULT_MINUTES is 15", () => {
-    expect(DEFAULT_MINUTES).toBe(15);
+  it("DEFAULT_MINUTES is 0", () => {
+    expect(DEFAULT_MINUTES).toBe(0);
   });
 });
 
@@ -67,5 +68,27 @@ describe("validateDuration", () => {
 
   it("treats hours=24 as 1440 minutes, ignoring any non-zero minute value", () => {
     expect(validateDuration(24, 30)).toBeNull();
+  });
+});
+
+describe("resolveInitialHoursMinutes", () => {
+  it("splits whole hours and minutes", () => {
+    expect(resolveInitialHoursMinutes(90)).toEqual({ hours: 1, minutes: 30 });
+  });
+
+  it("handles minutes-only duration", () => {
+    expect(resolveInitialHoursMinutes(15)).toEqual({ hours: 0, minutes: 15 });
+  });
+
+  it("handles full-day (1440 minutes)", () => {
+    expect(resolveInitialHoursMinutes(1440)).toEqual({ hours: 24, minutes: 0 });
+  });
+
+  it("handles exact hours with no remainder", () => {
+    expect(resolveInitialHoursMinutes(60)).toEqual({ hours: 1, minutes: 0 });
+  });
+
+  it("handles 45-minute block", () => {
+    expect(resolveInitialHoursMinutes(105)).toEqual({ hours: 1, minutes: 45 });
   });
 });

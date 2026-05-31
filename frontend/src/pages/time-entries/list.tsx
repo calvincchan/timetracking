@@ -1,3 +1,13 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -11,14 +21,22 @@ import {
   type DayGroup,
   type WeekEntry,
 } from "@/lib/week-utils";
-import { useList } from "@refinedev/core";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { useDelete, useList } from "@refinedev/core";
+import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { LogTimeDialog } from "./log-time-dialog";
 
 const NOTE_MAX_LENGTH = 80;
 
-function EntryRow({ entry }: { entry: WeekEntry }) {
+function EntryRow({
+  entry,
+  onEdit,
+  onDelete,
+}: {
+  entry: WeekEntry;
+  onEdit: (entry: WeekEntry) => void;
+  onDelete: (entry: WeekEntry) => void;
+}) {
   const note = entry.note.trim();
   return (
     <div className="flex items-baseline gap-4 py-2">
@@ -31,11 +49,43 @@ function EntryRow({ entry }: { entry: WeekEntry }) {
       <span className="flex-1 truncate" title={note || undefined}>
         {note ? truncateNote(note, NOTE_MAX_LENGTH) : ""}
       </span>
+      {!entry.is_locked && (
+        <div className="flex shrink-0 items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            aria-label="Edit entry"
+            onClick={() => onEdit(entry)}
+          >
+            <Pencil className="size-3.5" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-7 text-destructive hover:text-destructive"
+            aria-label="Delete entry"
+            onClick={() => onDelete(entry)}
+          >
+            <Trash2 className="size-3.5" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
 
-function DaySection({ day }: { day: DayGroup }) {
+function DaySection({
+  day,
+  onEdit,
+  onDelete,
+}: {
+  day: DayGroup;
+  onEdit: (entry: WeekEntry) => void;
+  onDelete: (entry: WeekEntry) => void;
+}) {
   return (
     <section className="flex flex-col gap-1">
       <h2 className="text-sm font-semibold text-muted-foreground">
@@ -46,7 +96,7 @@ function DaySection({ day }: { day: DayGroup }) {
       ) : (
         <div className="divide-y">
           {day.entries.map((entry) => (
-            <EntryRow key={entry.id} entry={entry} />
+            <EntryRow key={entry.id} entry={entry} onEdit={onEdit} onDelete={onDelete} />
           ))}
         </div>
       )}
@@ -59,6 +109,11 @@ export function MemberWeekView() {
     startOfWeek(new Date()),
   );
   const [logOpen, setLogOpen] = useState(false);
+  const [editEntry, setEditEntry] = useState<WeekEntry | null>(null);
+  const [deleteEntry, setDeleteEntry] = useState<WeekEntry | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const { mutate: deleteTimeEntry } = useDelete();
 
   const filters = useMemo(() => weekRangeFilters(weekStart), [weekStart]);
 
@@ -80,6 +135,24 @@ export function MemberWeekView() {
     const last = days[days.length - 1];
     return `${first.label} – ${last.label}`;
   }, [days]);
+
+  function handleConfirmDelete() {
+    if (!deleteEntry) return;
+    setDeleting(true);
+    deleteTimeEntry(
+      {
+        resource: "time_entries",
+        id: deleteEntry.id,
+        successNotification: false,
+      },
+      {
+        onSuccess: () => {
+          setDeleteEntry(null);
+        },
+        onSettled: () => setDeleting(false),
+      },
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -114,13 +187,49 @@ export function MemberWeekView() {
 
       <div className={cn("flex flex-col gap-4", query.isLoading && "opacity-60")}>
         {days.map((day) => (
-          <DaySection key={day.dateISO} day={day} />
+          <DaySection
+            key={day.dateISO}
+            day={day}
+            onEdit={setEditEntry}
+            onDelete={setDeleteEntry}
+          />
         ))}
       </div>
 
       {logOpen && (
         <LogTimeDialog onOpenChange={setLogOpen} />
       )}
+
+      {editEntry && (
+        <LogTimeDialog
+          entry={editEntry}
+          onOpenChange={(open) => {
+            if (!open) setEditEntry(null);
+          }}
+        />
+      )}
+
+      <AlertDialog
+        open={!!deleteEntry}
+        onOpenChange={(open) => {
+          if (!open) setDeleteEntry(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete time entry?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The entry will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} disabled={deleting}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
