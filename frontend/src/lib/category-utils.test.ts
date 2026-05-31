@@ -13,16 +13,21 @@ import { checkCategoryNameAvailable } from "./category-utils";
 // the supplied result. Records the filters applied along the way.
 function mockQuery(result: { data: unknown; error: unknown }) {
   const eqArgs: Array<[string, unknown]> = [];
+  const neqArgs: Array<[string, unknown]> = [];
   const builder = {
     select: vi.fn(() => builder),
     eq: vi.fn((col: string, val: unknown) => {
       eqArgs.push([col, val]);
       return builder;
     }),
+    neq: vi.fn((col: string, val: unknown) => {
+      neqArgs.push([col, val]);
+      return builder;
+    }),
     limit: vi.fn(() => Promise.resolve(result)),
   };
   vi.mocked(supabaseClient.from).mockReturnValue(builder as never);
-  return { builder, eqArgs };
+  return { builder, eqArgs, neqArgs };
 }
 
 afterEach(() => {
@@ -70,5 +75,35 @@ describe("checkCategoryNameAvailable", () => {
     mockQuery({ data: null, error: { message: "connection refused" } });
 
     expect(await checkCategoryNameAvailable("Anything")).toBe("connection refused");
+  });
+
+  it("excludes a category by id when excludeId is given (rename to own name)", async () => {
+    const { eqArgs, neqArgs } = mockQuery({ data: [], error: null });
+
+    const result = await checkCategoryNameAvailable("Development", "cat-1");
+
+    expect(eqArgs).toEqual([
+      ["name", "Development"],
+      ["is_archived", false],
+    ]);
+    expect(neqArgs).toEqual([["id", "cat-1"]]);
+    expect(result).toBeNull();
+  });
+
+  it("still reports a conflict against a different active category when excludeId is set", async () => {
+    const { neqArgs } = mockQuery({ data: [{ id: "cat-2" }], error: null });
+
+    const result = await checkCategoryNameAvailable("Meetings", "cat-1");
+
+    expect(neqArgs).toEqual([["id", "cat-1"]]);
+    expect(result).toBe("A category with this name already exists.");
+  });
+
+  it("does not call neq when excludeId is omitted", async () => {
+    const { neqArgs } = mockQuery({ data: [], error: null });
+
+    await checkCategoryNameAvailable("Research");
+
+    expect(neqArgs).toEqual([]);
   });
 });
