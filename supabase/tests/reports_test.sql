@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(12);
+SELECT plan(14);
 
 -- ────────────────────────────────────────────────────────────────
 -- Setup: users, profiles, categories, time entries
@@ -69,6 +69,14 @@ SELECT is(
     0,
     'preview_report: returns 0 when no entries match period');
 
+SELECT is(
+    (SELECT entry_count FROM public.preview_report(
+        '2026-01-01', '2026-01-31',
+        NULL,
+        'bbbbbbbb-0000-0000-0000-000000000099'::uuid)),
+    0,
+    'preview_report: category_id filter returns 0 for non-matching category');
+
 -- ────────────────────────────────────────────────────────────────
 -- generate_report
 -- ────────────────────────────────────────────────────────────────
@@ -98,6 +106,12 @@ SELECT is(
     (SELECT time_entries_snapshot -> 0 ->> 'category_name' FROM public.reports LIMIT 1),
     'Admin',
     'generate_report: snapshot entries include category_name');
+
+SELECT throws_ok(
+    $$ SELECT public.generate_report('2026-01-01', '2026-01-31') $$,
+    'P0001',
+    NULL,
+    'generate_report: raises when all matching entries already locked');
 
 -- ────────────────────────────────────────────────────────────────
 -- RLS — reports table
