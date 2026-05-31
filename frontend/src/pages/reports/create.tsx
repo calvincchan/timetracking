@@ -23,6 +23,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 type Profile = Tables<"profiles">;
 type Category = Tables<"categories">;
@@ -118,8 +119,12 @@ export function ReportCreate() {
         ...(userId !== "all" ? { user_id: userId } : {}),
         ...(categoryId !== "all" ? { category_id: categoryId } : {}),
       })
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (cancelled) return;
+        if (error) {
+          console.error(error);
+          return;
+        }
         const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
         setPreviewCount(row ?? { entry_count: 0, member_count: 0 });
       });
@@ -155,6 +160,9 @@ export function ReportCreate() {
       downloadCsv(csv, filename);
 
       navigate("/reports");
+    } catch (e) {
+      toast.error("Failed to generate report.", { richColors: true });
+      console.error(e);
     } finally {
       setGenerating(false);
     }

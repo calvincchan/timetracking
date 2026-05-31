@@ -11,9 +11,19 @@ type SnapshotEntry = {
   category_name: string | null;
 };
 
+function isSnapshotEntry(v: unknown): v is SnapshotEntry {
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    "id" in v &&
+    "entry_date" in v &&
+    "duration_minutes" in v
+  );
+}
+
 function toSnapshotEntries(snapshot: Json): SnapshotEntry[] {
   if (!Array.isArray(snapshot)) return [];
-  return snapshot as SnapshotEntry[];
+  return snapshot.filter(isSnapshotEntry);
 }
 
 function escapeCell(value: string | number | null | undefined): string {

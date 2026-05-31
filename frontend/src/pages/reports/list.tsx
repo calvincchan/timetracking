@@ -6,7 +6,6 @@ import {
 } from "@/components/refine-ui/views/list-view";
 import { Button } from "@/components/ui/button";
 import { buildReportCsv, downloadCsv } from "@/lib/report-csv";
-import { supabaseClient } from "@/providers/supabase-client";
 import type { Tables } from "@/types/database";
 import type { HttpError } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
@@ -25,17 +24,10 @@ const columnHelper = createColumnHelper<ReportRow>();
 function DownloadButton({ report }: { report: ReportRow }) {
   const [loading, setLoading] = useState(false);
 
-  async function handleDownload() {
+  function handleDownload() {
     setLoading(true);
     try {
-      const { data, error } = await supabaseClient
-        .from("reports")
-        .select("*")
-        .eq("id", report.id)
-        .single();
-      if (error) throw error;
-
-      const csv = buildReportCsv(data.time_entries_snapshot);
+      const csv = buildReportCsv(report.time_entries_snapshot);
       const filename = `report_${report.period_start}_${report.period_end}.csv`;
       downloadCsv(csv, filename);
     } catch (e) {
