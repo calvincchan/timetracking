@@ -15,6 +15,16 @@ export function calcDurationMinutes(hours: number, minutes: number): number {
   return hours * 60 + minutes;
 }
 
+// Splits a stored duration_minutes value back into hours and minutes for form seeding.
+export function resolveInitialHoursMinutes(duration_minutes: number): {
+  hours: number;
+  minutes: number;
+} {
+  const hours = Math.floor(duration_minutes / 60);
+  const minutes = duration_minutes % 60;
+  return { hours, minutes };
+}
+
 // Returns null when valid, an error string when total is 0.
 export function validateDuration(hours: number, minutes: number): string | null {
   const effective = resolveMinutes(hours, minutes);

@@ -23,20 +23,22 @@ import {
   HOUR_OPTIONS,
   MINUTE_OPTIONS,
   calcDurationMinutes,
+  resolveInitialHoursMinutes,
   resolveMinutes,
   validateDuration,
 } from "@/lib/log-time-utils";
 import { cn } from "@/lib/utils";
 import { formatDateISO } from "@/lib/week-utils";
 import type { Tables } from "@/types/database";
-import { useCreate, useGetIdentity, useList } from "@refinedev/core";
-import { format } from "date-fns";
+import { useCreate, useGetIdentity, useList, useUpdate } from "@refinedev/core";
+import { format, parseISO } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 type CategoryRow = Tables<"categories">;
+type TimeEntry = Tables<"time_entries">;
 
 type LogTimeForm = {
   date: Date;
@@ -49,14 +51,19 @@ type LogTimeForm = {
 const NOTE_MAX_LENGTH = 500;
 
 export function LogTimeDialog({
+  entry,
   onOpenChange,
 }: {
+  entry?: TimeEntry;
   onOpenChange: (open: boolean) => void;
 }) {
+  const isEdit = entry !== undefined;
   const [saving, setSaving] = useState(false);
   const { mutate: createEntry } = useCreate();
+  const { mutate: updateEntry } = useUpdate();
   const { data: identity } = useGetIdentity<{ id: string }>();
 
+  // Active (non-archived) categories
   const { result: categoryResult, query: categoryQuery } = useList<CategoryRow>({
     resource: "categories",
     filters: [{ field: "is_archived", operator: "eq", value: false }],
@@ -64,8 +71,48 @@ export function LogTimeDialog({
     pagination: { mode: "off" },
   });
 
-  const categories = categoryResult?.data ?? [];
-  const noCategories = !categoryQuery.isLoading && categories.length === 0;
+  const activeCategories = categoryResult?.data ?? [];
+
+  // When editing, also fetch the entry's category if it's archived (won't appear above)
+  const entryHasCategory = isEdit && !!entry.category_id;
+  const { result: archivedCatResult } = useList<CategoryRow>({
+    resource: "categories",
+    filters: entryHasCategory
+      ? [{ field: "id", operator: "eq", value: entry.category_id }]
+      : [{ field: "id", operator: "eq", value: "00000000-0000-0000-0000-000000000000" }],
+    pagination: { mode: "off" },
+    queryOptions: { enabled: isEdit },
+  });
+
+  const entryCategory = archivedCatResult?.data?.[0] ?? null;
+  // Show the archived category if it's not in the active list
+  const archivedEntry =
+    entryCategory && !activeCategories.some((c) => c.id === entryCategory.id)
+      ? entryCategory
+      : null;
+
+  const noCategories =
+    !categoryQuery.isLoading && activeCategories.length === 0 && !archivedEntry;
+
+  const initialValues = (): LogTimeForm => {
+    if (!isEdit) {
+      return {
+        date: new Date(),
+        hours: DEFAULT_HOURS,
+        minutes: DEFAULT_MINUTES,
+        category_id: null,
+        note: "",
+      };
+    }
+    const { hours, minutes } = resolveInitialHoursMinutes(entry.duration_minutes);
+    return {
+      date: parseISO(entry.entry_date),
+      hours,
+      minutes,
+      category_id: entry.category_id ?? null,
+      note: entry.note ?? "",
+    };
+  };
 
   const {
     control,
@@ -73,13 +120,7 @@ export function LogTimeDialog({
     watch,
     formState: { errors },
   } = useForm<LogTimeForm>({
-    defaultValues: {
-      date: new Date(),
-      hours: DEFAULT_HOURS,
-      minutes: DEFAULT_MINUTES,
-      category_id: null,
-      note: "",
-    },
+    defaultValues: initialValues(),
   });
 
   const watchedHours = watch("hours");
@@ -93,27 +134,51 @@ export function LogTimeDialog({
     const duration_minutes = calcDurationMinutes(values.hours, effectiveMinutes);
 
     setSaving(true);
-    createEntry(
-      {
-        resource: "time_entries",
-        values: {
-          entry_date: formatDateISO(values.date),
-          duration_minutes,
-          category_id: values.category_id ?? null,
-          note: values.note.trim(),
-          user_id: identity.id,
-          is_locked: false,
+
+    if (isEdit) {
+      updateEntry(
+        {
+          resource: "time_entries",
+          id: entry.id,
+          values: {
+            entry_date: formatDateISO(values.date),
+            duration_minutes,
+            category_id: values.category_id ?? null,
+            note: values.note.trim(),
+          },
+          successNotification: false,
         },
-        successNotification: false,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Time entry logged.", { richColors: true });
-          onOpenChange(false);
+        {
+          onSuccess: () => {
+            toast.success("Time entry updated.", { richColors: true });
+            onOpenChange(false);
+          },
+          onSettled: () => setSaving(false),
         },
-        onSettled: () => setSaving(false),
-      },
-    );
+      );
+    } else {
+      createEntry(
+        {
+          resource: "time_entries",
+          values: {
+            entry_date: formatDateISO(values.date),
+            duration_minutes,
+            category_id: values.category_id ?? null,
+            note: values.note.trim(),
+            user_id: identity.id,
+            is_locked: false,
+          },
+          successNotification: false,
+        },
+        {
+          onSuccess: () => {
+            toast.success("Time entry logged.", { richColors: true });
+            onOpenChange(false);
+          },
+          onSettled: () => setSaving(false),
+        },
+      );
+    }
   });
 
   return (
@@ -121,7 +186,7 @@ export function LogTimeDialog({
       <DialogContent>
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>Log Time</DialogTitle>
+            <DialogTitle>{isEdit ? "Edit Time Entry" : "Log Time"}</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col gap-4 py-4">
@@ -237,11 +302,21 @@ export function LogTimeDialog({
                         <SelectValue placeholder="Uncategorized" />
                       </SelectTrigger>
                       <SelectContent>
-                        {categories.map((cat) => (
+                        {activeCategories.map((cat) => (
                           <SelectItem key={cat.id} value={cat.id}>
                             {cat.name}
                           </SelectItem>
                         ))}
+                        {archivedEntry && (
+                          <SelectItem
+                            key={archivedEntry.id}
+                            value={archivedEntry.id}
+                            disabled
+                            className="text-muted-foreground"
+                          >
+                            {archivedEntry.name} (archived)
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     {noCategories && (
@@ -295,7 +370,7 @@ export function LogTimeDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={saving}>
-              Log Time
+              {isEdit ? "Save Changes" : "Log Time"}
             </Button>
           </DialogFooter>
         </form>
