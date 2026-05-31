@@ -124,6 +124,67 @@ $$;
 ALTER FUNCTION "public"."custom_access_token_hook"("_event" "jsonb") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."generate_report"("period_start" "date", "period_end" "date", "user_id" "uuid" DEFAULT NULL::"uuid", "category_id" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+DECLARE
+    v_report_id   uuid;
+    v_snapshot    jsonb;
+    v_entry_count int;
+BEGIN
+    -- Build enriched snapshot
+    SELECT
+        jsonb_agg(
+            jsonb_build_object(
+                'entry_id',         te.id,
+                'user_id',          te.user_id,
+                'user_full_name',   p.full_name,
+                'entry_date',       te.entry_date,
+                'duration_minutes', te.duration_minutes,
+                'category_id',      te.category_id,
+                'category_name',    COALESCE(c.name, ''),
+                'note',             te.note
+            )
+            ORDER BY te.entry_date, te.user_id
+        ),
+        COUNT(*)::int
+    INTO v_snapshot, v_entry_count
+    FROM public.time_entries te
+    JOIN public.profiles p ON p.id = te.user_id
+    LEFT JOIN public.categories c ON c.id = te.category_id
+    WHERE te.is_locked = false
+      AND te.entry_date >= period_start
+      AND te.entry_date <= period_end
+      AND (generate_report.user_id     IS NULL OR te.user_id     = generate_report.user_id)
+      AND (generate_report.category_id IS NULL OR te.category_id = generate_report.category_id);
+
+    IF v_entry_count = 0 THEN
+        RAISE EXCEPTION 'generate_report: no unlocked entries match the given filters';
+    END IF;
+
+    -- Insert report row
+    INSERT INTO public.reports (generated_by, period_start, period_end, time_entries_snapshot)
+    VALUES (auth.uid(), period_start, period_end, v_snapshot)
+    RETURNING id INTO v_report_id;
+
+    -- Lock matched entries
+    UPDATE public.time_entries te
+    SET is_locked = true
+    WHERE te.is_locked = false
+      AND te.entry_date >= period_start
+      AND te.entry_date <= period_end
+      AND (generate_report.user_id     IS NULL OR te.user_id     = generate_report.user_id)
+      AND (generate_report.category_id IS NULL OR te.category_id = generate_report.category_id);
+
+    RETURN v_report_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."generate_report"("period_start" "date", "period_end" "date", "user_id" "uuid", "category_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -246,6 +307,28 @@ $$;
 
 
 ALTER FUNCTION "public"."log_time_entry_change"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."preview_report"("period_start" "date", "period_end" "date", "user_id" "uuid" DEFAULT NULL::"uuid", "category_id" "uuid" DEFAULT NULL::"uuid") RETURNS TABLE("entry_count" integer, "member_count" integer)
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        COUNT(*)::int                   AS entry_count,
+        COUNT(DISTINCT te.user_id)::int AS member_count
+    FROM public.time_entries te
+    WHERE te.is_locked = false
+      AND te.entry_date >= period_start
+      AND te.entry_date <= period_end
+      AND (preview_report.user_id     IS NULL OR te.user_id     = preview_report.user_id)
+      AND (preview_report.category_id IS NULL OR te.category_id = preview_report.category_id);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."preview_report"("period_start" "date", "period_end" "date", "user_id" "uuid", "category_id" "uuid") OWNER TO "postgres";
 
 
 CREATE OR REPLACE FUNCTION "public"."update_modified_column"() RETURNS "trigger"
@@ -3586,6 +3669,12 @@ GRANT ALL ON FUNCTION "public"."functions_are"("name", "name"[], "text") TO "pos
 GRANT ALL ON FUNCTION "public"."functions_are"("name", "name"[], "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."functions_are"("name", "name"[], "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."functions_are"("name", "name"[], "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."generate_report"("period_start" "date", "period_end" "date", "user_id" "uuid", "category_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."generate_report"("period_start" "date", "period_end" "date", "user_id" "uuid", "category_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."generate_report"("period_start" "date", "period_end" "date", "user_id" "uuid", "category_id" "uuid") TO "service_role";
 
 
 
@@ -7158,6 +7247,12 @@ GRANT ALL ON FUNCTION "public"."policy_roles_are"("name", "name", "name", "name"
 GRANT ALL ON FUNCTION "public"."policy_roles_are"("name", "name", "name", "name"[], "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."policy_roles_are"("name", "name", "name", "name"[], "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."policy_roles_are"("name", "name", "name", "name"[], "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."preview_report"("period_start" "date", "period_end" "date", "user_id" "uuid", "category_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."preview_report"("period_start" "date", "period_end" "date", "user_id" "uuid", "category_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."preview_report"("period_start" "date", "period_end" "date", "user_id" "uuid", "category_id" "uuid") TO "service_role";
 
 
 
