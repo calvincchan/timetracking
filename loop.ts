@@ -195,6 +195,10 @@ process.on("SIGTERM", () => cleanup().then(() => process.exit(143)));
 
 // ── Main loop ─────────────────────────────────────────────────────────────────
 
+const caffeinateChild = spawn("caffeinate", ["-i", "-w", String(process.pid)], { detached: true, stdio: "ignore" });
+caffeinateChild.unref();
+console.log("Caffeinate active (preventing sleep).");
+
 const state = loadState();
 console.log(`RALPH loop starting at iteration ${state.iteration}`);
 
