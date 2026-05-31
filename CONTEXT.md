@@ -10,7 +10,7 @@ Term definitions only. No implementation details, SQL, or code.
 
 **Time Entry** — a single duration record (in minutes) submitted by a Member for a given date and category.
 
-**Category** — a Supervisor-managed label optionally applied to time entries (e.g. "Development", "Meetings"). Categories can be archived (hidden from the entry form) or unarchived. Time entries without a category are displayed as "Uncategorized".
+**Category** — a Supervisor-managed label optionally applied to time entries (e.g. "Development", "Meetings"). Categories can be archived (hidden from the entry form) or unarchived. Category is optional on a time entry; entries without one are displayed as "Uncategorized".
 
 **employment_type** — a profile attribute: either `paid` or `volunteer`; affects report grouping; hidden in v1 UI.
 
