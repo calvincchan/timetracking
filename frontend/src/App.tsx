@@ -1,13 +1,13 @@
-import { Authenticated, CanAccess, Refine } from "@refinedev/core";
+import { Authenticated, CanAccess, Refine, usePermissions } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
-import type { ComponentProps } from "react";
+import type { ComponentProps, PropsWithChildren } from "react";
 
 import routerProvider, {
   DocumentTitleHandler,
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import { liveProvider } from "@refinedev/supabase";
-import { Tag, UserPlus } from "lucide-react";
+import { CalendarDays, Tag, UserPlus } from "lucide-react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import "./App.css";
 import { SignInForm } from "./components/refine-ui/form/sign-in-form";
@@ -19,6 +19,7 @@ import { CategoryCreate } from "./pages/categories/create";
 import { CategoryList } from "./pages/categories/list";
 import { InviteCreate } from "./pages/invites/create";
 import { InviteList } from "./pages/invites/list";
+import { MemberWeekView } from "./pages/time-entries/list";
 import { accessControlProvider } from "./providers/access-control-provider";
 import authProvider from "./providers/auth";
 import { dataProvider } from "./providers/data";
@@ -39,6 +40,15 @@ function AccessDenied() {
   );
 }
 
+// Member-only guard for the weekly view. Supervisors hold `time_entries:read`
+// too, so a permission check alone wouldn't exclude them — gate on role.
+function MemberRoute({ children }: PropsWithChildren) {
+  const { data: role, isLoading } = usePermissions<string>({});
+  if (isLoading) return null;
+  if (role !== "Member") return <AccessDenied />;
+  return <>{children}</>;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -52,6 +62,14 @@ function App() {
             routerProvider={routerProvider}
             notificationProvider={useNotificationProvider()}
             resources={[
+              {
+                name: "time_entries",
+                list: "/",
+                meta: {
+                  label: "My Week",
+                  icon: <CalendarDays size={16} />,
+                },
+              },
               {
                 name: "invites",
                 list: "/invites",
@@ -95,10 +113,15 @@ function App() {
                 <Route
                   index
                   element={
-                    <div className="flex flex-col gap-2 p-6">
-                      <h1 className="text-2xl font-semibold">Dashboard</h1>
-                      <p className="text-muted-foreground">Coming soon.</p>
-                    </div>
+                    <CanAccess
+                      resource="time_entries"
+                      action="list"
+                      fallback={<AccessDenied />}
+                    >
+                      <MemberRoute>
+                        <MemberWeekView />
+                      </MemberRoute>
+                    </CanAccess>
                   }
                 />
                 <Route path="invites" element={<InviteList />} />
