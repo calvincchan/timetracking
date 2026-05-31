@@ -21,8 +21,13 @@ import {
   type DayGroup,
   type WeekEntry,
 } from "@/lib/week-utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useDelete, useList } from "@refinedev/core";
-import { ChevronLeft, ChevronRight, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lock, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { LogTimeDialog } from "./log-time-dialog";
 
@@ -39,7 +44,7 @@ function EntryRow({
 }) {
   const note = entry.note.trim();
   return (
-    <div className="flex items-baseline gap-4 py-2">
+    <div className={cn("flex items-baseline gap-4 py-2", entry.is_locked && "opacity-60")}>
       <span className="w-20 shrink-0 font-medium tabular-nums">
         {formatDuration(entry.duration_minutes)}
       </span>
@@ -49,7 +54,18 @@ function EntryRow({
       <span className="flex-1 truncate" title={note || undefined}>
         {note ? truncateNote(note, NOTE_MAX_LENGTH) : ""}
       </span>
-      {!entry.is_locked && (
+      {entry.is_locked ? (
+        <div className="flex shrink-0 items-center px-1">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Lock className="size-3.5 text-muted-foreground" aria-label="Locked entry" />
+            </TooltipTrigger>
+            <TooltipContent>
+              Locked — contact your Supervisor to make changes.
+            </TooltipContent>
+          </Tooltip>
+        </div>
+      ) : (
         <div className="flex shrink-0 items-center gap-1">
           <Button
             type="button"
@@ -155,7 +171,7 @@ export function MemberWeekView() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-6  max-w-4xl">
       <header className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">My Week</h1>
         <div className="flex items-center gap-2">
