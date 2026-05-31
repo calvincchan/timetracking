@@ -7,6 +7,7 @@ import {
   groupEntriesByDay,
   shiftWeek,
   startOfWeek,
+  sumMinutes,
   truncateNote,
   weekRangeFilters,
   type WeekEntry,
@@ -181,6 +182,25 @@ describe("groupEntriesByDay", () => {
     const entries = [makeEntry({ id: "x", entry_date: "2026-06-01" })];
     const groups = groupEntriesByDay(entries, localDate("2026-05-24"));
     expect(groups.flatMap((g) => g.entries)).toHaveLength(0);
+  });
+});
+
+describe("sumMinutes", () => {
+  it("sums duration_minutes across entries", () => {
+    const entries = [
+      makeEntry({ duration_minutes: 30 }),
+      makeEntry({ duration_minutes: 45 }),
+      makeEntry({ duration_minutes: 90 }),
+    ];
+    expect(sumMinutes(entries)).toBe(165);
+  });
+
+  it("returns 0 for empty array", () => {
+    expect(sumMinutes([])).toBe(0);
+  });
+
+  it("returns the single entry value", () => {
+    expect(sumMinutes([makeEntry({ duration_minutes: 75 })])).toBe(75);
   });
 });
 
