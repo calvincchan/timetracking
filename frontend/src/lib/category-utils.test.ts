@@ -7,7 +7,10 @@ vi.mock("@/providers/supabase-client", () => ({
 }));
 
 import { supabaseClient } from "@/providers/supabase-client";
-import { checkCategoryNameAvailable } from "./category-utils";
+import {
+  categoryArchivedFilters,
+  checkCategoryNameAvailable,
+} from "./category-utils";
 
 // Builds a chainable query-builder mock whose terminal `limit` resolves to
 // the supplied result. Records the filters applied along the way.
@@ -105,5 +108,17 @@ describe("checkCategoryNameAvailable", () => {
     await checkCategoryNameAvailable("Research");
 
     expect(neqArgs).toEqual([]);
+  });
+});
+
+describe("categoryArchivedFilters", () => {
+  it("excludes archived categories when showArchived is false", () => {
+    expect(categoryArchivedFilters(false)).toEqual([
+      { field: "is_archived", operator: "eq", value: false },
+    ]);
+  });
+
+  it("clears the archive filter when showArchived is true", () => {
+    expect(categoryArchivedFilters(true)).toEqual([]);
   });
 });

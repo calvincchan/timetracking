@@ -23,7 +23,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { checkCategoryNameAvailable } from "@/lib/category-utils";
+import {
+  categoryArchivedFilters,
+  checkCategoryNameAvailable,
+} from "@/lib/category-utils";
 import { cn } from "@/lib/utils";
 import type { Tables } from "@/types/database";
 import { useUpdate, type HttpError } from "@refinedev/core";
@@ -165,12 +168,17 @@ export function CategoryList() {
         initial: [{ field: "name", order: "asc" }],
       },
       filters: {
-        permanent: showArchived
-          ? []
-          : [{ field: "is_archived", operator: "eq", value: false }],
+        initial: categoryArchivedFilters(false),
       },
     },
   });
+
+  const handleShowArchivedChange = (checked: boolean) => {
+    setShowArchived(checked);
+    // `filters.initial` is only read on mount, so toggle the active filter set
+    // directly. `replace` swaps the whole set rather than merging.
+    table.refineCore.setFilters(categoryArchivedFilters(checked), "replace");
+  };
 
   return (
     <ListView className="p-6">
@@ -179,7 +187,7 @@ export function CategoryList() {
         <Switch
           id="show-archived"
           checked={showArchived}
-          onCheckedChange={setShowArchived}
+          onCheckedChange={handleShowArchivedChange}
         />
         <Label htmlFor="show-archived">Show archived</Label>
       </div>
