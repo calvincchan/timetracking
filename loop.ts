@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 
 const MODELS = {
   planner: "claude-sonnet-4-6",
-  implementer: "claude-opus-4-8",
+  implementer: "claude-sonnet-4-6",
   reviewer: "claude-sonnet-4-6",
   merger: "claude-haiku-4-5-20251001",
 };
