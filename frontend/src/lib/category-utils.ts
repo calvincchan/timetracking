@@ -1,4 +1,5 @@
 import { supabaseClient } from "@/providers/supabase-client";
+import type { CrudFilter } from "@refinedev/core";
 
 /**
  * Checks whether a category name is free to use among active (non-archived)
@@ -34,4 +35,19 @@ export async function checkCategoryNameAvailable(
   if (error) return error.message;
   if (data && data.length > 0) return "A category with this name already exists.";
   return null;
+}
+
+/**
+ * Builds the active filter set for the category list based on the "Show
+ * archived" toggle. When archived rows are hidden, a single `is_archived = false`
+ * filter is applied; when shown, no filter is applied (empty set) so the list
+ * returns every category.
+ *
+ * Used both for `useTable`'s initial filters and for `setFilters` on toggle, so
+ * the two stay in sync without re-initializing the table.
+ */
+export function categoryArchivedFilters(showArchived: boolean): CrudFilter[] {
+  return showArchived
+    ? []
+    : [{ field: "is_archived", operator: "eq", value: false }];
 }
