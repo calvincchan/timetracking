@@ -3,8 +3,14 @@ BEGIN;
 SELECT plan(9);
 
 -- Clean slate within this transaction
+-- Use replica role to skip triggers (audit trigger requires auth.uid() which is
+-- NULL when running as superuser, causing a NOT NULL violation on changed_by).
+SET LOCAL session_replication_role = replica;
+DELETE FROM public.time_entry_audit_logs;
+DELETE FROM public.time_entries;
 DELETE FROM public.profiles;
 DELETE FROM public.invites;
+SET LOCAL session_replication_role = DEFAULT;
 
 -- ────────────────────────────────────────────────────────────────
 -- 1. First-user path: Supervisor profile created immediately on INSERT
