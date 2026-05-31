@@ -1,0 +1,7 @@
+<plan>
+{
+  "issues": [
+    { "number": 13, "title": "feat(prd-02): schema fixes for categories", "branch": "loop/issue-13" }
+  ]
+}
+</plan>

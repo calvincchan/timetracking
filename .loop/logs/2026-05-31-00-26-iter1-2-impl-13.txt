@@ -1,0 +1,11 @@
+Done. PR #17: https://github.com/calvincchan/timetracking/pull/17
+
+All acceptance criteria met:
+- Migration applies clean
+- `categories.created_at`/`updated_at` → `NOT NULL`
+- `categories_name_active_unique` partial index exists
+- `time_entries.category_id` nullable (schema + `database.ts` → `string | null`)
+- types regenerated
+- pgTAP: 21 tests PASS; frontend type-check/lint(0 err)/test(30) green
+
+<promise>COMPLETE</promise>
