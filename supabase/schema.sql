@@ -269,8 +269,8 @@ CREATE TABLE IF NOT EXISTS "public"."categories" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "name" "text" NOT NULL,
     "is_archived" boolean DEFAULT false NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"(),
-    "updated_at" timestamp with time zone DEFAULT "now"()
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
 
 
@@ -329,7 +329,7 @@ CREATE TABLE IF NOT EXISTS "public"."time_entries" (
     "user_id" "uuid" NOT NULL,
     "entry_date" "date" NOT NULL,
     "duration_minutes" integer NOT NULL,
-    "category_id" "uuid" NOT NULL,
+    "category_id" "uuid",
     "note" "text" DEFAULT ''::"text" NOT NULL,
     "is_locked" boolean DEFAULT false NOT NULL,
     "created_at" timestamp with time zone DEFAULT "now"(),
@@ -393,6 +393,10 @@ ALTER TABLE ONLY "public"."time_entries"
 
 ALTER TABLE ONLY "public"."time_entry_audit_logs"
     ADD CONSTRAINT "time_entry_audit_logs_pkey" PRIMARY KEY ("id");
+
+
+
+CREATE UNIQUE INDEX "categories_name_active_unique" ON "public"."categories" USING "btree" ("name") WHERE ("is_archived" = false);
 
 
 

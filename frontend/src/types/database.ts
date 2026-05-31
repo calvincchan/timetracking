@@ -36,25 +36,25 @@ export type Database = {
     Tables: {
       categories: {
         Row: {
-          created_at: string | null
+          created_at: string
           id: string
           is_archived: boolean
           name: string
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           is_archived?: boolean
           name: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           id?: string
           is_archived?: boolean
           name?: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -161,7 +161,7 @@ export type Database = {
       }
       time_entries: {
         Row: {
-          category_id: string
+          category_id: string | null
           created_at: string | null
           duration_minutes: number
           entry_date: string
@@ -172,7 +172,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          category_id: string
+          category_id?: string | null
           created_at?: string | null
           duration_minutes: number
           entry_date: string
@@ -183,7 +183,7 @@ export type Database = {
           user_id: string
         }
         Update: {
-          category_id?: string
+          category_id?: string | null
           created_at?: string | null
           duration_minutes?: number
           entry_date?: string
