@@ -122,6 +122,11 @@ export function groupEntriesByDay(
   return days;
 }
 
+// Sum of duration_minutes across an array of entries.
+export function sumMinutes(entries: WeekEntry[]): number {
+  return entries.reduce((acc, e) => acc + e.duration_minutes, 0);
+}
+
 // Refine filters selecting entries whose entry_date falls within the displayed
 // week, Sunday through Saturday inclusive.
 export function weekRangeFilters(weekStart: Date): CrudFilter[] {

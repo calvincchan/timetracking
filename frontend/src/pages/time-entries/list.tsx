@@ -16,6 +16,7 @@ import {
   groupEntriesByDay,
   shiftWeek,
   startOfWeek,
+  sumMinutes,
   truncateNote,
   weekRangeFilters,
   type DayGroup,
@@ -104,8 +105,9 @@ function DaySection({
 }) {
   return (
     <section className="flex flex-col gap-1">
-      <h2 className="text-sm font-semibold text-muted-foreground">
-        {day.label}
+      <h2 className="text-sm font-semibold text-muted-foreground flex items-baseline justify-between">
+        <span>{day.label}</span>
+        <span className="tabular-nums">{formatDuration(sumMinutes(day.entries))}</span>
       </h2>
       {day.entries.length === 0 ? (
         <p className="py-2 text-sm text-muted-foreground italic">No entries</p>
@@ -151,6 +153,11 @@ export function MemberWeekView() {
     const last = days[days.length - 1];
     return `${first.label} – ${last.label}`;
   }, [days]);
+
+  const weeklyTotal = useMemo(
+    () => sumMinutes(result?.data ?? []),
+    [result?.data],
+  );
 
   function handleConfirmDelete() {
     if (!deleteEntry) return;
@@ -200,6 +207,11 @@ export function MemberWeekView() {
           </Button>
         </div>
       </header>
+
+      <div className="flex items-baseline justify-between rounded-lg border px-4 py-3">
+        <span className="text-sm font-medium text-muted-foreground">Weekly total</span>
+        <span className="text-lg font-semibold tabular-nums">{formatDuration(weeklyTotal)}</span>
+      </div>
 
       <div className={cn("flex flex-col gap-4", query.isLoading && "opacity-60")}>
         {days.map((day) => (
