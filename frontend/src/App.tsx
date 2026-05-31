@@ -1,6 +1,6 @@
-import { Authenticated, CanAccess, Refine, usePermissions } from "@refinedev/core";
+import { Authenticated, CanAccess, Refine } from "@refinedev/core";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
-import type { ComponentProps, PropsWithChildren } from "react";
+import type { ComponentProps } from "react";
 
 import routerProvider, {
   DocumentTitleHandler,
@@ -38,15 +38,6 @@ function AccessDenied() {
       </p>
     </div>
   );
-}
-
-// Member-only guard for the weekly view. Supervisors hold `time_entries:read`
-// too, so a permission check alone wouldn't exclude them — gate on role.
-function MemberRoute({ children }: PropsWithChildren) {
-  const { data: role, isLoading } = usePermissions<string>({});
-  if (isLoading) return null;
-  if (role !== "Member") return <AccessDenied />;
-  return <>{children}</>;
 }
 
 function App() {
@@ -118,9 +109,7 @@ function App() {
                       action="list"
                       fallback={<AccessDenied />}
                     >
-                      <MemberRoute>
-                        <MemberWeekView />
-                      </MemberRoute>
+                      <MemberWeekView />
                     </CanAccess>
                   }
                 />
