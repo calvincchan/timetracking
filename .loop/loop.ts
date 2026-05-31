@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 import { $ } from "bun";
-import { execSync } from "child_process";
+import { execSync, spawn } from "child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { fileURLToPath } from "url";
 
 const MODELS = {
   planner: "claude-sonnet-4-6",
@@ -18,10 +19,48 @@ const STATE_FILE = ".loop/state.json";
 const rawIter = process.argv[2];
 const maxIterations = rawIter !== undefined ? parseInt(rawIter, 10) : NaN;
 
+if (process.argv[2] === "--alerter-watcher") {
+  const { alerterArgs, cwd, bundleId } = JSON.parse(process.argv[3]);
+  const { spawnSync } = await import("child_process");
+  const result = spawnSync("alerter", alerterArgs, { encoding: "utf8" });
+  if (result.stdout?.trim() === "Open") {
+    if (bundleId === "com.microsoft.VSCode") {
+      spawnSync("/usr/local/bin/code", [cwd]);
+    } else if (bundleId) {
+      spawnSync("open", ["-b", bundleId]);
+    }
+  }
+  process.exit(0);
+}
+
 if (!rawIter || isNaN(maxIterations) || maxIterations < 1 || !Number.isInteger(maxIterations)) {
   console.error("Usage: bun loop.ts <iteration>");
   console.error("  iteration  Positive integer — max number of outer loop iterations");
   process.exit(1);
+}
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+function alerterAvailable(): boolean {
+  try { execSync("which alerter", { stdio: "pipe" }); return true; } catch { return false; }
+}
+
+function sendNotification(title: string, subtitle: string, cwd: string, bundleId: string) {
+  if (!alerterAvailable()) return;
+  const alerterArgs = ["--sound", "default", "--title", title, "--subtitle", subtitle];
+  if (cwd) {
+    alerterArgs.push("--actions", "Open");
+    const scriptPath = fileURLToPath(import.meta.url);
+    const payload = JSON.stringify({ alerterArgs, cwd, bundleId });
+    const child = spawn(process.execPath, [scriptPath, "--alerter-watcher", payload], {
+      detached: true,
+      stdio: "ignore",
+    });
+    child.unref();
+  } else {
+    const child = spawn("alerter", alerterArgs, { detached: true, stdio: "ignore" });
+    child.unref();
+  }
 }
 
 interface Issue {
@@ -276,4 +315,10 @@ for (let i = state.iteration; i <= maxIterations; i++) {
   console.log(`\nIteration ${i} complete. State saved.`);
 }
 
+sendNotification(
+  "RALPH",
+  `Loop done — ${state.completedIssues.length} issue${state.completedIssues.length === 1 ? "" : "s"} completed`,
+  process.cwd(),
+  process.env.__CFBundleIdentifier ?? "",
+);
 console.log("\nRALPH loop finished.");
