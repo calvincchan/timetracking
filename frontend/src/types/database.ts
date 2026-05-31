@@ -367,6 +367,15 @@ export type Database = {
       findfuncs: { Args: { "": string }; Returns: string[] }
       finish: { Args: { exception_on_failure?: boolean }; Returns: string[] }
       format_type_string: { Args: { "": string }; Returns: string }
+      generate_report: {
+        Args: {
+          category_id?: string
+          period_end: string
+          period_start: string
+          user_id?: string
+        }
+        Returns: string
+      }
       has_role_permission: {
         Args: { p_permission: Database["public"]["Enums"]["permissions"] }
         Returns: boolean
@@ -387,6 +396,18 @@ export type Database = {
       pg_version: { Args: never; Returns: string }
       pg_version_num: { Args: never; Returns: number }
       pgtap_version: { Args: never; Returns: number }
+      preview_report: {
+        Args: {
+          category_id?: string
+          period_end: string
+          period_start: string
+          user_id?: string
+        }
+        Returns: {
+          entry_count: number
+          member_count: number
+        }[]
+      }
       runtests:
         | { Args: never; Returns: string[] }
         | { Args: { "": string }; Returns: string[] }
