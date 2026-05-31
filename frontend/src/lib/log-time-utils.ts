@@ -3,8 +3,8 @@ export const HOUR_OPTIONS = Array.from({ length: 25 }, (_, i) => i); // 0–24
 export const MINUTE_OPTIONS = [0, 15, 30, 45] as const;
 export type MinuteOption = (typeof MINUTE_OPTIONS)[number];
 
-export const DEFAULT_HOURS = 0;
-export const DEFAULT_MINUTES: MinuteOption = 15;
+export const DEFAULT_HOURS = 1;
+export const DEFAULT_MINUTES: MinuteOption = 0;
 
 // When hours = 24, the minute must be 0 (full-day cap).
 export function resolveMinutes(hours: number, minutes: number): number {
