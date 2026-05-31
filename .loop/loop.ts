@@ -265,6 +265,8 @@ for (let i = state.iteration; i <= maxIterations; i++) {
       prompt: mergePrompt,
       logFile: logFile(i, "4-merge"),
     });
+    await $`git pull`;
+    await $`git remote prune origin`;
   } else {
     console.log("\nNo branches approved — skipping merge.");
   }

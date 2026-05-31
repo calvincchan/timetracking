@@ -1,7 +1,0 @@
-```
-<merge-summary>
-Merged: loop/issue-13 (PR #17)
-Failed: none
-Main now at: 0318f93 feat(prd-02): schema fixes for categories (#17)
-</merge-summary>
-```

@@ -15,6 +15,12 @@ that are ready for automated implementation this iteration.
 !`cat .loop/state.json 2>/dev/null || echo '{"completedIssues":[]}'`
 ```
 
+## Recent commits on main
+
+```
+!`git log --oneline -10`
+```
+
 ## Current branch state
 
 ```

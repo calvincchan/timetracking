@@ -1,7 +1,7 @@
 # Reviewer
 
 You are the Reviewer agent. Review the implementation of Issue #{{ISSUE_NUMBER}}
-("{{ISSUE_TITLE}}") on branch `{{BRANCH}}`.
+("{{ISSUE_TITLE}}") on branch `{{BRANCH}}` using /review skill. Post a review summary to PR comment.
 
 ## Diff to review
 
