@@ -9,6 +9,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
   categoryName,
@@ -22,11 +27,6 @@ import {
   type DayGroup,
   type WeekEntry,
 } from "@/lib/week-utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useDelete, useList } from "@refinedev/core";
 import { ChevronLeft, ChevronRight, Lock, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -200,7 +200,6 @@ export function MemberWeekView() {
           {weekStart.getTime() !== startOfWeek(new Date()).getTime() && (
             <Button
               variant="outline"
-              size="sm"
               onClick={() => setWeekStart(startOfWeek(new Date()))}
             >
               Today
