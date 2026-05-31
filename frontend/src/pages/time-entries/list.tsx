@@ -12,8 +12,9 @@ import {
   type WeekEntry,
 } from "@/lib/week-utils";
 import { useList } from "@refinedev/core";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
+import { LogTimeDialog } from "./log-time-dialog";
 
 const NOTE_MAX_LENGTH = 80;
 
@@ -57,6 +58,7 @@ export function MemberWeekView() {
   const [weekStart, setWeekStart] = useState<Date>(() =>
     startOfWeek(new Date()),
   );
+  const [logOpen, setLogOpen] = useState(false);
 
   const filters = useMemo(() => weekRangeFilters(weekStart), [weekStart]);
 
@@ -84,6 +86,10 @@ export function MemberWeekView() {
       <header className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">My Week</h1>
         <div className="flex items-center gap-2">
+          <Button onClick={() => setLogOpen(true)}>
+            <Plus className="mr-1 size-4" />
+            Log Time
+          </Button>
           <Button
             variant="outline"
             size="icon"
@@ -111,6 +117,10 @@ export function MemberWeekView() {
           <DaySection key={day.dateISO} day={day} />
         ))}
       </div>
+
+      {logOpen && (
+        <LogTimeDialog onOpenChange={setLogOpen} />
+      )}
     </div>
   );
 }
