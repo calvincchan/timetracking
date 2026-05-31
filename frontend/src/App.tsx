@@ -7,7 +7,7 @@ import routerProvider, {
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import { liveProvider } from "@refinedev/supabase";
-import { CalendarDays, Tag, UserPlus } from "lucide-react";
+import { CalendarDays, FileText, Tag, UserPlus } from "lucide-react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import "./App.css";
 import { SignInForm } from "./components/refine-ui/form/sign-in-form";
@@ -19,6 +19,8 @@ import { CategoryCreate } from "./pages/categories/create";
 import { CategoryList } from "./pages/categories/list";
 import { InviteCreate } from "./pages/invites/create";
 import { InviteList } from "./pages/invites/list";
+import { ReportCreate } from "./pages/reports/create";
+import { ReportList } from "./pages/reports/list";
 import { MemberWeekView } from "./pages/time-entries/list";
 import { accessControlProvider } from "./providers/access-control-provider";
 import authProvider from "./providers/auth";
@@ -80,6 +82,15 @@ function App() {
                   icon: <Tag size={16} />,
                 },
               },
+              {
+                name: "reports",
+                list: "/reports",
+                create: "/reports/create",
+                meta: {
+                  label: "Reports",
+                  icon: <FileText size={16} />,
+                },
+              },
             ]}
             options={{
               syncWithLocation: true,
@@ -136,6 +147,30 @@ function App() {
                       fallback={<AccessDenied />}
                     >
                       <CategoryCreate />
+                    </CanAccess>
+                  }
+                />
+                <Route
+                  path="reports"
+                  element={
+                    <CanAccess
+                      resource="reports"
+                      action="list"
+                      fallback={<AccessDenied />}
+                    >
+                      <ReportList />
+                    </CanAccess>
+                  }
+                />
+                <Route
+                  path="reports/create"
+                  element={
+                    <CanAccess
+                      resource="reports"
+                      action="create"
+                      fallback={<AccessDenied />}
+                    >
+                      <ReportCreate />
                     </CanAccess>
                   }
                 />
