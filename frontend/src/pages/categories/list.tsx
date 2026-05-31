@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   categoryArchivedFilters,
+  categoryColumnFilters,
   checkCategoryNameAvailable,
 } from "@/lib/category-utils";
 import { cn } from "@/lib/utils";
@@ -33,7 +34,7 @@ import { useUpdate, type HttpError } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 import { MoreHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CategoryRenameDialog } from "./rename-dialog";
 
@@ -104,7 +105,7 @@ export function CategoryList() {
     );
   };
 
-  const handleUnarchive = async (category: CategoryRow) => {
+  const handleUnarchive = useCallback(async (category: CategoryRow) => {
     const conflict = await checkCategoryNameAvailable(category.name);
     if (conflict) {
       toast.error(
@@ -126,9 +127,9 @@ export function CategoryList() {
         },
       },
     );
-  };
+  }, [updateCategory]);
 
-  const columns = [
+  const columns = useMemo(() => [
     columnHelper.accessor("name", {
       header: "Name",
       size: 320,
@@ -158,7 +159,7 @@ export function CategoryList() {
         </div>
       ),
     }),
-  ];
+  ], [handleUnarchive]);
 
   const table = useTable<CategoryRow, HttpError>({
     columns,
@@ -175,9 +176,8 @@ export function CategoryList() {
 
   const handleShowArchivedChange = (checked: boolean) => {
     setShowArchived(checked);
-    // `filters.initial` is only read on mount, so toggle the active filter set
-    // directly. `replace` swaps the whole set rather than merging.
-    table.refineCore.setFilters(categoryArchivedFilters(checked), "replace");
+    // Drive through TanStack so the TanStack→Refine sync effect picks it up.
+    table.reactTable.setColumnFilters(categoryColumnFilters(checked));
   };
 
   return (

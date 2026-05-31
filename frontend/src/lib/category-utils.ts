@@ -51,3 +51,9 @@ export function categoryArchivedFilters(showArchived: boolean): CrudFilter[] {
     ? []
     : [{ field: "is_archived", operator: "eq", value: false }];
 }
+
+export function categoryColumnFilters(
+  showArchived: boolean,
+): { id: string; value: unknown }[] {
+  return showArchived ? [] : [{ id: "is_archived", value: false }];
+}
