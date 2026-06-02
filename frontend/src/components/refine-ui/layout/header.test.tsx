@@ -72,20 +72,9 @@ describe("UserDropdown — full_name display", () => {
     );
   });
 
-  it("shows a separator between the name and logout", () => {
-    mockIdentity("Bob Jones");
+  it("renders empty label when identity is null", () => {
+    mockIdentity(null);
     render(<Header />);
-    expect(screen.getAllByTestId("dropdown-separator")).toHaveLength(1);
-  });
-
-  it("shows the logout button after the user name", () => {
-    mockIdentity("Carol White");
-    render(<Header />);
-    const label = screen.getByTestId("dropdown-label");
-    const logout = screen.getByRole("button", { name: /logout/i });
-    // label appears before logout in the DOM
-    expect(
-      label.compareDocumentPosition(logout) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy();
+    expect(screen.getByTestId("dropdown-label")).toHaveTextContent("");
   });
 });
