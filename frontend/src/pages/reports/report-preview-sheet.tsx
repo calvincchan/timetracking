@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import {
   Sheet,
   SheetContent,
@@ -74,8 +75,8 @@ export function ReportPreviewSheet({
               </thead>
               <tbody>
                 {detailGroups.length > 0 ? detailGroups.map((group) => (
-                  <>
-                    <tr key={`group-${group.user}`} className="border-b bg-muted/40">
+                  <Fragment key={group.user}>
+                    <tr className="border-b bg-muted/40">
                       <td colSpan={4} className="py-1 font-semibold">{group.user}</td>
                     </tr>
                     {group.rows.map((row) => (
@@ -88,7 +89,7 @@ export function ReportPreviewSheet({
                         <td className="py-1 text-muted-foreground">{row.note}</td>
                       </tr>
                     ))}
-                  </>
+                  </Fragment>
                 )) : (
                   <tr>
                     <td colSpan={4} className="py-2 text-muted-foreground italic text-center">
