@@ -108,7 +108,7 @@ function DaySection({
 }) {
   return (
     <section className="flex flex-col gap-1">
-      <h2 className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
+      <h2 className="text-sm font-semibold text-muted-foreground flex items-center gap-1">
         <span>{day.label}</span>
         <Button
           type="button"
@@ -120,6 +120,7 @@ function DaySection({
         >
           <Plus className="size-3.5" />
         </Button>
+        <span className="flex-1" />
         <span className="tabular-nums">{formatDuration(sumMinutes(day.entries))}</span>
       </h2>
       {day.entries.length === 0 ? (
