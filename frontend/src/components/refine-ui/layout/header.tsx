@@ -4,12 +4,16 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { Tables } from "@/types/database";
 import {
   useActiveAuthProvider,
+  useGetIdentity,
   useLogout,
   useRefineOptions,
 } from "@refinedev/core";
@@ -119,6 +123,7 @@ function MobileHeader() {
 
 const UserDropdown = () => {
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const { data: user } = useGetIdentity<Tables<"profiles">>();
 
   const authProvider = useActiveAuthProvider();
 
@@ -132,6 +137,8 @@ const UserDropdown = () => {
         <UserAvatar />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuLabel>{user?.full_name}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => {
             logout();
