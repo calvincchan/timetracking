@@ -1,6 +1,6 @@
 BEGIN;
 
-SELECT plan(4);
+SELECT plan(5);
 
 -- ────────────────────────────────────────────────────────────────
 -- Setup: users, profiles, categories, time entries
@@ -91,6 +91,13 @@ SELECT is(
      WHERE id = (SELECT id FROM _del_report)),
     0,
     'delete_report: report row is deleted');
+
+SELECT throws_ok(
+    format($$ SELECT public.delete_report(%L::uuid) $$,
+           (SELECT id FROM _del_report)),
+    'P0001',
+    'delete_report: report not found',
+    'delete_report: raises error when report not found');
 
 SELECT * FROM finish();
 

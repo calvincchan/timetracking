@@ -21,7 +21,7 @@ import { supabaseClient } from "@/providers/supabase-client";
 import type { Tables } from "@/types/database";
 import { parseTimeEntrySnapshot } from "@/types/report-snapshot";
 import type { HttpError } from "@refinedev/core";
-import { useInvalidate } from "@refinedev/core";
+import { useInvalidate, useCan } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -64,7 +64,10 @@ function DownloadButton({ report }: { report: ReportRow }) {
 function DeleteReportButton({ report }: { report: ReportRow }) {
   const [saving, setSaving] = useState(false);
   const invalidate = useInvalidate();
+  const { data: canDelete } = useCan({ resource: "reports", action: "delete" });
   const entryCount = parseTimeEntrySnapshot(report.time_entries_snapshot).length;
+
+  if (!canDelete?.can) return null;
 
   async function handleDelete() {
     setSaving(true);

@@ -5,17 +5,25 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
+  v_snapshot jsonb;
   v_entry_ids uuid[];
 BEGIN
-  IF (auth.jwt() ->> 'user_role') IS DISTINCT FROM 'Supervisor' THEN
+  IF NOT has_role_permission('reports:write') THEN
     RAISE EXCEPTION 'delete_report: insufficient permissions';
+  END IF;
+
+  SELECT time_entries_snapshot
+  INTO v_snapshot
+  FROM public.reports
+  WHERE id = p_report_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'delete_report: report not found';
   END IF;
 
   SELECT array_agg((elem->>'entry_id')::uuid)
   INTO v_entry_ids
-  FROM jsonb_array_elements(
-    (SELECT time_entries_snapshot FROM public.reports WHERE id = p_report_id)
-  ) elem;
+  FROM jsonb_array_elements(v_snapshot) elem;
 
   UPDATE public.time_entries
   SET is_locked = false
@@ -24,3 +32,6 @@ BEGIN
   DELETE FROM public.reports WHERE id = p_report_id;
 END;
 $$;
+
+REVOKE EXECUTE ON FUNCTION public.delete_report(uuid) FROM anon;
+GRANT EXECUTE ON FUNCTION public.delete_report(uuid) TO authenticated, service_role;
