@@ -19,7 +19,9 @@ export function UserAvatar() {
 
   return (
     <Avatar className={cn("h-10", "w-10")}>
-      <AvatarFallback>{getInitials(full_name)}</AvatarFallback>
+      <AvatarFallback className="bg-primary text-primary-foreground">
+        {getInitials(full_name)}
+      </AvatarFallback>
     </Avatar>
   );
 }
