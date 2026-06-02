@@ -52,9 +52,11 @@ const NOTE_MAX_LENGTH = 500;
 
 export function LogTimeDialog({
   entry,
+  initialDate,
   onOpenChange,
 }: {
   entry?: TimeEntry;
+  initialDate?: Date;
   onOpenChange: (open: boolean) => void;
 }) {
   const isEdit = entry !== undefined;
@@ -97,7 +99,7 @@ export function LogTimeDialog({
   const initialValues = (): LogTimeForm => {
     if (!isEdit) {
       return {
-        date: new Date(),
+        date: initialDate ?? new Date(),
         hours: DEFAULT_HOURS,
         minutes: DEFAULT_MINUTES,
         category_id: null,

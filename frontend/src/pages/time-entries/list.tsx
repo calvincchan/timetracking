@@ -28,6 +28,7 @@ import {
   type WeekEntry,
 } from "@/lib/week-utils";
 import { useDelete, useList } from "@refinedev/core";
+import { parseISO } from "date-fns";
 import { ChevronLeft, ChevronRight, Lock, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { LogTimeDialog } from "./log-time-dialog";
@@ -98,15 +99,27 @@ function DaySection({
   day,
   onEdit,
   onDelete,
+  onAddEntry,
 }: {
   day: DayGroup;
   onEdit: (entry: WeekEntry) => void;
   onDelete: (entry: WeekEntry) => void;
+  onAddEntry: (dateISO: string) => void;
 }) {
   return (
     <section className="flex flex-col gap-1">
-      <h2 className="text-sm font-semibold text-muted-foreground flex items-baseline justify-between">
+      <h2 className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
         <span>{day.label}</span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-6"
+          aria-label={`Add entry for ${day.label}`}
+          onClick={() => onAddEntry(day.dateISO)}
+        >
+          <Plus className="size-3.5" />
+        </Button>
         <span className="tabular-nums">{formatDuration(sumMinutes(day.entries))}</span>
       </h2>
       {day.entries.length === 0 ? (
@@ -126,7 +139,7 @@ export function MemberWeekView() {
   const [weekStart, setWeekStart] = useState<Date>(() =>
     startOfWeek(new Date()),
   );
-  const [logOpen, setLogOpen] = useState(false);
+  const [logDate, setLogDate] = useState<Date | null>(null);
   const [editEntry, setEditEntry] = useState<WeekEntry | null>(null);
   const [deleteEntry, setDeleteEntry] = useState<WeekEntry | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -182,7 +195,7 @@ export function MemberWeekView() {
       <header className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">My Week</h1>
         <div className="flex items-center gap-2">
-          <Button onClick={() => setLogOpen(true)}>
+          <Button onClick={() => setLogDate(new Date())}>
             <Plus className="mr-1 size-4" />
             Log Time
           </Button>
@@ -228,12 +241,16 @@ export function MemberWeekView() {
             day={day}
             onEdit={setEditEntry}
             onDelete={setDeleteEntry}
+            onAddEntry={(dateISO) => setLogDate(parseISO(dateISO))}
           />
         ))}
       </div>
 
-      {logOpen && (
-        <LogTimeDialog onOpenChange={setLogOpen} />
+      {logDate && (
+        <LogTimeDialog
+          initialDate={logDate}
+          onOpenChange={(open) => { if (!open) setLogDate(null); }}
+        />
       )}
 
       {editEntry && (
