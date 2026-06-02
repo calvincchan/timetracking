@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildSummaryRows, buildDetailRows } from "./report-preview";
+import { buildSummaryRows, buildGroupedDetailRows } from "./report-preview";
 import type { TimeEntrySnapshot } from "@/types/report-snapshot";
 
 function makeEntry(overrides: Partial<TimeEntrySnapshot> = {}): TimeEntrySnapshot {
@@ -63,15 +63,47 @@ describe("buildSummaryRows", () => {
   });
 });
 
-describe("buildDetailRows", () => {
-  it("returns one row per entry", () => {
-    const rows = buildDetailRows([makeEntry(), makeEntry({ entry_id: "e2" })]);
-    expect(rows).toHaveLength(2);
+describe("buildGroupedDetailRows", () => {
+  it("returns one group per user", () => {
+    const groups = buildGroupedDetailRows([
+      makeEntry({ entry_id: "e1", user_full_name: "Alice" }),
+      makeEntry({ entry_id: "e2", user_full_name: "Bob" }),
+    ]);
+    expect(groups).toHaveLength(2);
+  });
+
+  it("groups entries under the correct user", () => {
+    const groups = buildGroupedDetailRows([
+      makeEntry({ entry_id: "e1", user_full_name: "Alice" }),
+      makeEntry({ entry_id: "e2", user_full_name: "Alice" }),
+      makeEntry({ entry_id: "e3", user_full_name: "Bob" }),
+    ]);
+    const alice = groups.find((g) => g.user === "Alice");
+    expect(alice?.rows).toHaveLength(2);
+  });
+
+  it("sorts groups alphabetically by user", () => {
+    const groups = buildGroupedDetailRows([
+      makeEntry({ entry_id: "e1", user_full_name: "Zara" }),
+      makeEntry({ entry_id: "e2", user_full_name: "Alice" }),
+    ]);
+    expect(groups.map((g) => g.user)).toEqual(["Alice", "Zara"]);
+  });
+
+  it("sorts rows within a group by date asc", () => {
+    const groups = buildGroupedDetailRows([
+      makeEntry({ entry_id: "e1", entry_date: "2026-01-20" }),
+      makeEntry({ entry_id: "e2", entry_date: "2026-01-10" }),
+    ]);
+    expect(groups[0].rows.map((r) => r.entry_date)).toEqual([
+      "2026-01-10",
+      "2026-01-20",
+    ]);
   });
 
   it("row has expected fields", () => {
-    const rows = buildDetailRows([makeEntry({ note: "worked hard" })]);
-    expect(rows[0]).toEqual({
+    const groups = buildGroupedDetailRows([makeEntry({ note: "worked hard" })]);
+    expect(groups[0].rows[0]).toEqual({
       entry_id: "e1",
       entry_date: "2026-01-15",
       user_full_name: "Alice",
@@ -81,20 +113,7 @@ describe("buildDetailRows", () => {
     });
   });
 
-  it("sorts by date asc then user asc", () => {
-    const rows = buildDetailRows([
-      makeEntry({ entry_id: "e1", entry_date: "2026-01-20", user_full_name: "Zara" }),
-      makeEntry({ entry_id: "e2", entry_date: "2026-01-10", user_full_name: "Bob" }),
-      makeEntry({ entry_id: "e3", entry_date: "2026-01-10", user_full_name: "Alice" }),
-    ]);
-    expect(rows.map((r) => `${r.entry_date}/${r.user_full_name}`)).toEqual([
-      "2026-01-10/Alice",
-      "2026-01-10/Bob",
-      "2026-01-20/Zara",
-    ]);
-  });
-
   it("returns empty array for no entries", () => {
-    expect(buildDetailRows([])).toEqual([]);
+    expect(buildGroupedDetailRows([])).toEqual([]);
   });
 });

@@ -1,10 +1,11 @@
+import { Fragment } from "react";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { buildDetailRows, buildSummaryRows, toHours } from "@/lib/report-preview";
+import { buildGroupedDetailRows, buildSummaryRows, toHours } from "@/lib/report-preview";
 import { parseTimeEntrySnapshot } from "@/types/report-snapshot";
 import type { ReportRow } from "./list";
 
@@ -21,7 +22,7 @@ export function ReportPreviewSheet({
 }: ReportPreviewSheetProps) {
   const entries = parseTimeEntrySnapshot(report.time_entries_snapshot);
   const summaryRows = buildSummaryRows(entries);
-  const detailRows = buildDetailRows(entries);
+  const detailGroups = buildGroupedDetailRows(entries);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -67,26 +68,31 @@ export function ReportPreviewSheet({
               <thead>
                 <tr className="border-b text-muted-foreground text-left">
                   <th className="py-1 pr-4 font-medium">Date</th>
-                  <th className="py-1 pr-4 font-medium">User</th>
                   <th className="py-1 pr-4 font-medium">Category</th>
                   <th className="py-1 pr-4 font-medium text-right">Duration</th>
                   <th className="py-1 font-medium">Note</th>
                 </tr>
               </thead>
               <tbody>
-                {detailRows.length > 0 ? detailRows.map((row) => (
-                  <tr key={row.entry_id} className="border-b last:border-0">
-                    <td className="py-1 pr-4 tabular-nums">{row.entry_date}</td>
-                    <td className="py-1 pr-4">{row.user_full_name}</td>
-                    <td className="py-1 pr-4">{row.category_name}</td>
-                    <td className="py-1 pr-4 text-right tabular-nums">
-                      {toHours(row.duration_minutes)}h
-                    </td>
-                    <td className="py-1 text-muted-foreground">{row.note}</td>
-                  </tr>
+                {detailGroups.length > 0 ? detailGroups.map((group) => (
+                  <Fragment key={group.user}>
+                    <tr className="border-b bg-muted/40">
+                      <td colSpan={4} className="py-1 font-semibold">{group.user}</td>
+                    </tr>
+                    {group.rows.map((row) => (
+                      <tr key={row.entry_id} className="border-b last:border-0">
+                        <td className="py-1 pr-4 tabular-nums">{row.entry_date}</td>
+                        <td className="py-1 pr-4">{row.category_name}</td>
+                        <td className="py-1 pr-4 text-right tabular-nums">
+                          {toHours(row.duration_minutes)}h
+                        </td>
+                        <td className="py-1 text-muted-foreground">{row.note}</td>
+                      </tr>
+                    ))}
+                  </Fragment>
                 )) : (
                   <tr>
-                    <td colSpan={5} className="py-2 text-muted-foreground italic text-center">
+                    <td colSpan={4} className="py-2 text-muted-foreground italic text-center">
                       No entries
                     </td>
                   </tr>
