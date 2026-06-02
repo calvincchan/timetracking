@@ -31,19 +31,26 @@ export function buildSummaryRows(entries: TimeEntrySnapshot[]): SummaryRow[] {
     .sort((a, b) => a.user.localeCompare(b.user) || a.category.localeCompare(b.category));
 }
 
-export function buildDetailRows(entries: TimeEntrySnapshot[]): DetailRow[] {
-  return [...entries]
-    .sort(
-      (a, b) =>
-        a.entry_date.localeCompare(b.entry_date) ||
-        a.user_full_name.localeCompare(b.user_full_name),
-    )
-    .map((e) => ({
+export type UserDetailGroup = { user: string; rows: DetailRow[] };
+
+export function buildGroupedDetailRows(entries: TimeEntrySnapshot[]): UserDetailGroup[] {
+  const map = new Map<string, DetailRow[]>();
+  for (const e of entries) {
+    const existing = map.get(e.user_full_name) ?? [];
+    existing.push({
       entry_id: e.entry_id,
       entry_date: e.entry_date,
       user_full_name: e.user_full_name,
       category_name: e.category_name,
       duration_minutes: e.duration_minutes,
       note: e.note,
+    });
+    map.set(e.user_full_name, existing);
+  }
+  return Array.from(map.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([user, rows]) => ({
+      user,
+      rows: rows.sort((a, b) => a.entry_date.localeCompare(b.entry_date)),
     }));
 }

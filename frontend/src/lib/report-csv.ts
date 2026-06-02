@@ -63,10 +63,25 @@ export function buildReportCsv(snapshot: Json): string {
 
   // Detail block
   lines.push(row("Date", "User", "Category", "Duration (hours)", "Note"));
+
+  const detailMap = new Map<string, typeof entries>();
   for (const e of entries) {
-    lines.push(
-      row(e.entry_date, e.user_full_name, e.category_name, toHours(e.duration_minutes), e.note)
+    const existing = detailMap.get(e.user_full_name) ?? [];
+    existing.push(e);
+    detailMap.set(e.user_full_name, existing);
+  }
+  const sortedUsers = Array.from(detailMap.keys()).sort((a, b) => a.localeCompare(b));
+  for (const user of sortedUsers) {
+    lines.push("");
+    lines.push(escapeCell(user));
+    const userEntries = detailMap.get(user)!.sort((a, b) =>
+      a.entry_date.localeCompare(b.entry_date)
     );
+    for (const e of userEntries) {
+      lines.push(
+        row(e.entry_date, e.user_full_name, e.category_name, toHours(e.duration_minutes), e.note)
+      );
+    }
   }
 
   return lines.join("\n");
