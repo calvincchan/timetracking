@@ -124,8 +124,30 @@ function App() {
                     </CanAccess>
                   }
                 />
-                <Route path="invites" element={<InviteList />} />
-                <Route path="invites/create" element={<InviteCreate />} />
+                <Route
+                  path="invites"
+                  element={
+                    <CanAccess
+                      resource="invites"
+                      action="list"
+                      fallback={<AccessDenied />}
+                    >
+                      <InviteList />
+                    </CanAccess>
+                  }
+                />
+                <Route
+                  path="invites/create"
+                  element={
+                    <CanAccess
+                      resource="invites"
+                      action="create"
+                      fallback={<AccessDenied />}
+                    >
+                      <InviteCreate />
+                    </CanAccess>
+                  }
+                />
                 <Route
                   path="categories"
                   element={
