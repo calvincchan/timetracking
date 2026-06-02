@@ -1,3 +1,5 @@
+import type { Json } from "./database";
+
 export interface TimeEntrySnapshot {
   entry_id:         string;
   user_id:          string;
@@ -8,4 +10,11 @@ export interface TimeEntrySnapshot {
   category_name:    string;
   note:             string;
 }
-// usage: report.time_entries_snapshot as TimeEntrySnapshot[]
+
+// Json's element type is too wide for a direct cast to TimeEntrySnapshot[].
+// The double cast is required by TypeScript; the Array.isArray guard ensures
+// the value is actually an array at runtime before we assert the element shape.
+export function parseTimeEntrySnapshot(json: Json): TimeEntrySnapshot[] {
+  if (!Array.isArray(json)) return [];
+  return json as unknown as TimeEntrySnapshot[];
+}
