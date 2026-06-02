@@ -4,15 +4,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { buildDetailRows, buildSummaryRows } from "@/lib/report-preview";
-import type { Tables } from "@/types/database";
-import type { TimeEntrySnapshot } from "@/types/report-snapshot";
-
-type ReportRow = Tables<"reports"> & {
-  profiles: { full_name: string } | null;
-};
-
-const toHours = (minutes: number) => Math.round((minutes / 60) * 100) / 100;
+import { buildDetailRows, buildSummaryRows, toHours } from "@/lib/report-preview";
+import { parseTimeEntrySnapshot } from "@/types/report-snapshot";
+import type { ReportRow } from "./list";
 
 interface ReportPreviewSheetProps {
   open: boolean;
@@ -25,7 +19,7 @@ export function ReportPreviewSheet({
   onOpenChange,
   report,
 }: ReportPreviewSheetProps) {
-  const entries = (report.time_entries_snapshot as unknown as TimeEntrySnapshot[]) ?? [];
+  const entries = parseTimeEntrySnapshot(report.time_entries_snapshot);
   const summaryRows = buildSummaryRows(entries);
   const detailRows = buildDetailRows(entries);
 
@@ -50,8 +44,8 @@ export function ReportPreviewSheet({
                 </tr>
               </thead>
               <tbody>
-                {summaryRows.length > 0 ? summaryRows.map((row, i) => (
-                  <tr key={i} className="border-b last:border-0">
+                {summaryRows.length > 0 ? summaryRows.map((row) => (
+                  <tr key={`${row.user}\0${row.category}`} className="border-b last:border-0">
                     <td className="py-1 pr-4">{row.user}</td>
                     <td className="py-1 pr-4">{row.category}</td>
                     <td className="py-1 text-right tabular-nums">{row.totalHours}</td>
@@ -81,7 +75,7 @@ export function ReportPreviewSheet({
               </thead>
               <tbody>
                 {detailRows.length > 0 ? detailRows.map((row, i) => (
-                  <tr key={i} className="border-b last:border-0">
+                  <tr key={`${row.entry_date}\0${row.user_full_name}\0${i}`} className="border-b last:border-0">
                     <td className="py-1 pr-4 tabular-nums">{row.entry_date}</td>
                     <td className="py-1 pr-4">{row.user_full_name}</td>
                     <td className="py-1 pr-4">{row.category_name}</td>

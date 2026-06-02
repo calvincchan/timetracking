@@ -14,7 +14,7 @@ export type DetailRow = {
   note: string;
 };
 
-const toHours = (minutes: number) => Math.round((minutes / 60) * 100) / 100;
+export const toHours = (minutes: number) => Math.round((minutes / 60) * 100) / 100;
 
 export function buildSummaryRows(entries: TimeEntrySnapshot[]): SummaryRow[] {
   const map = new Map<string, number>();
