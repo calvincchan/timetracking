@@ -25,7 +25,7 @@ export function ReportPreviewSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[640px] sm:max-w-[640px] overflow-y-auto">
+      <SheetContent side="right" className="w-[640px] sm:max-w-[640px] overflow-y-auto p-4">
         <SheetHeader>
           <SheetTitle>
             Report: {report.period_start} — {report.period_end}
@@ -74,8 +74,8 @@ export function ReportPreviewSheet({
                 </tr>
               </thead>
               <tbody>
-                {detailRows.length > 0 ? detailRows.map((row, i) => (
-                  <tr key={`${row.entry_date}\0${row.user_full_name}\0${i}`} className="border-b last:border-0">
+                {detailRows.length > 0 ? detailRows.map((row) => (
+                  <tr key={row.entry_id} className="border-b last:border-0">
                     <td className="py-1 pr-4 tabular-nums">{row.entry_date}</td>
                     <td className="py-1 pr-4">{row.user_full_name}</td>
                     <td className="py-1 pr-4">{row.category_name}</td>

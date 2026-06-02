@@ -72,6 +72,7 @@ describe("buildDetailRows", () => {
   it("row has expected fields", () => {
     const rows = buildDetailRows([makeEntry({ note: "worked hard" })]);
     expect(rows[0]).toEqual({
+      entry_id: "e1",
       entry_date: "2026-01-15",
       user_full_name: "Alice",
       category_name: "Dev",

@@ -7,6 +7,7 @@ export type SummaryRow = {
 };
 
 export type DetailRow = {
+  entry_id: string;
   entry_date: string;
   user_full_name: string;
   category_name: string;
@@ -38,6 +39,7 @@ export function buildDetailRows(entries: TimeEntrySnapshot[]): DetailRow[] {
         a.user_full_name.localeCompare(b.user_full_name),
     )
     .map((e) => ({
+      entry_id: e.entry_id,
       entry_date: e.entry_date,
       user_full_name: e.user_full_name,
       category_name: e.category_name,
