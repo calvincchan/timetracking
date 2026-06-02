@@ -78,7 +78,8 @@ CREATE TYPE "public"."permissions" AS ENUM (
     'reports:read',
     'reports:write',
     'invites:write',
-    'profiles:read'
+    'profiles:read',
+    'invites:read'
 );
 
 
@@ -563,7 +564,11 @@ CREATE POLICY "categories_update" ON "public"."categories" FOR UPDATE TO "authen
 ALTER TABLE "public"."invites" ENABLE ROW LEVEL SECURITY;
 
 
-CREATE POLICY "invites_all" ON "public"."invites" TO "authenticated" USING ("public"."has_role_permission"('invites:write'::"public"."permissions")) WITH CHECK ("public"."has_role_permission"('invites:write'::"public"."permissions"));
+CREATE POLICY "invites_select" ON "public"."invites" FOR SELECT USING ("public"."has_role_permission"('invites:read'::"public"."permissions"));
+
+
+
+CREATE POLICY "invites_write" ON "public"."invites" USING ("public"."has_role_permission"('invites:write'::"public"."permissions")) WITH CHECK ("public"."has_role_permission"('invites:write'::"public"."permissions"));
 
 
 

@@ -438,6 +438,7 @@ export type Database = {
         | "reports:write"
         | "invites:write"
         | "profiles:read"
+        | "invites:read"
       user_role: "Supervisor" | "Member"
     }
     CompositeTypes: {
@@ -583,6 +584,7 @@ export const Constants = {
         "reports:write",
         "invites:write",
         "profiles:read",
+        "invites:read",
       ],
       user_role: ["Supervisor", "Member"],
     },
