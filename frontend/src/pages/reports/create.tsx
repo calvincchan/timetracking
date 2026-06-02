@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { buildReportCsv, downloadCsv } from "@/lib/report-csv";
 import { cn } from "@/lib/utils";
 import { supabaseClient } from "@/providers/supabase-client";
 import type { Tables } from "@/types/database";
@@ -148,17 +147,7 @@ export function ReportCreate() {
       });
       if (rpcError) throw rpcError;
 
-      const { data: report, error: fetchError } = await supabaseClient
-        .from("reports")
-        .select("*")
-        .eq("id", reportId as string)
-        .single();
-      if (fetchError) throw fetchError;
-
-      const csv = buildReportCsv(report.time_entries_snapshot);
-      const filename = `report_${format(periodStart, "yyyy-MM-dd")}_${format(periodEnd, "yyyy-MM-dd")}.csv`;
-      downloadCsv(csv, filename);
-
+      toast.success("Report generated successfully.", { richColors: true });
       navigate("/reports");
     } catch (e) {
       toast.error("Failed to generate report.", { richColors: true });
