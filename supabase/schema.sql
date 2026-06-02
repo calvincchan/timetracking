@@ -125,6 +125,43 @@ $$;
 ALTER FUNCTION "public"."custom_access_token_hook"("_event" "jsonb") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."delete_report"("p_report_id" "uuid") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+DECLARE
+  v_snapshot jsonb;
+  v_entry_ids uuid[];
+BEGIN
+  IF NOT has_role_permission('reports:write') THEN
+    RAISE EXCEPTION 'delete_report: insufficient permissions';
+  END IF;
+
+  SELECT time_entries_snapshot
+  INTO v_snapshot
+  FROM public.reports
+  WHERE id = p_report_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'delete_report: report not found';
+  END IF;
+
+  SELECT array_agg((elem->>'entry_id')::uuid)
+  INTO v_entry_ids
+  FROM jsonb_array_elements(v_snapshot) elem;
+
+  UPDATE public.time_entries
+  SET is_locked = false
+  WHERE id = ANY(v_entry_ids);
+
+  DELETE FROM public.reports WHERE id = p_report_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."delete_report"("p_report_id" "uuid") OWNER TO "postgres";
+
+
 CREATE OR REPLACE FUNCTION "public"."generate_report"("period_start" "date", "period_end" "date", "user_id" "uuid" DEFAULT NULL::"uuid", "category_id" "uuid" DEFAULT NULL::"uuid") RETURNS "uuid"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
@@ -3021,6 +3058,11 @@ GRANT ALL ON FUNCTION "public"."db_owner_is"("name", "name", "text") TO "postgre
 GRANT ALL ON FUNCTION "public"."db_owner_is"("name", "name", "text") TO "anon";
 GRANT ALL ON FUNCTION "public"."db_owner_is"("name", "name", "text") TO "authenticated";
 GRANT ALL ON FUNCTION "public"."db_owner_is"("name", "name", "text") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."delete_report"("p_report_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."delete_report"("p_report_id" "uuid") TO "service_role";
 
 
 

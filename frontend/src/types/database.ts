@@ -375,6 +375,7 @@ export type Database = {
             Returns: string
           }
       custom_access_token_hook: { Args: { _event: Json }; Returns: Json }
+      delete_report: { Args: { p_report_id: string }; Returns: undefined }
       diag:
         | {
             Args: { msg: unknown }

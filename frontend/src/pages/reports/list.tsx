@@ -1,17 +1,31 @@
-import { EmptyCell } from "@/components/refine-ui/empty-cell";
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
+import { EmptyCell } from "@/components/refine-ui/empty-cell";
 import {
   ListView,
   ListViewHeader,
 } from "@/components/refine-ui/views/list-view";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { buildReportCsv, downloadCsv } from "@/lib/report-csv";
+import { supabaseClient } from "@/providers/supabase-client";
 import type { Tables } from "@/types/database";
+import { parseTimeEntrySnapshot } from "@/types/report-snapshot";
 import type { HttpError } from "@refinedev/core";
+import { useCan, useInvalidate } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { Download, Eye } from "lucide-react";
+import { Download, Eye, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ReportPreviewSheet } from "./report-preview-sheet";
@@ -47,6 +61,53 @@ function DownloadButton({ report }: { report: ReportRow }) {
   );
 }
 
+function DeleteReportButton({ report }: { report: ReportRow }) {
+  const [saving, setSaving] = useState(false);
+  const invalidate = useInvalidate();
+  const { data: canDelete } = useCan({ resource: "reports", action: "write" });
+  const entryCount = parseTimeEntrySnapshot(report.time_entries_snapshot).length;
+
+  if (!canDelete?.can) return null;
+
+  async function handleDelete() {
+    setSaving(true);
+    const { error } = await supabaseClient.rpc("delete_report", {
+      p_report_id: report.id,
+    });
+    setSaving(false);
+    if (error) {
+      toast.error("Failed to delete report.", { richColors: true });
+      console.error(error);
+      return;
+    }
+    toast.success("Report deleted and entries unlocked.", { richColors: true });
+    invalidate({ resource: "reports", invalidates: ["list"] });
+  }
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="ghost" size="icon" disabled={saving} aria-label="Delete report">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete report?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Deleting this report will unlock all {entryCount} entries and
+            permanently remove the snapshot. This cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 function buildColumns(onPreview: (report: ReportRow) => void) {
   return [
     columnHelper.display({
@@ -77,7 +138,7 @@ function buildColumns(onPreview: (report: ReportRow) => void) {
     }),
     columnHelper.display({
       id: "actions",
-      size: 80,
+      size: 120,
       cell: ({ row }) => (
         <div className="action-column">
           <Button
@@ -89,6 +150,7 @@ function buildColumns(onPreview: (report: ReportRow) => void) {
             <Eye className="h-4 w-4" />
           </Button>
           <DownloadButton report={row.original} />
+          <DeleteReportButton report={row.original} />
         </div>
       ),
     }),
