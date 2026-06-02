@@ -139,7 +139,7 @@ export function ReportCreate() {
     if (!periodStart || !periodEnd || entryCount === 0) return;
     setGenerating(true);
     try {
-      const { data: reportId, error: rpcError } = await supabaseClient.rpc("generate_report", {
+      const { error: rpcError } = await supabaseClient.rpc("generate_report", {
         period_start: format(periodStart, "yyyy-MM-dd"),
         period_end: format(periodEnd, "yyyy-MM-dd"),
         ...(userId !== "all" ? { user_id: userId } : {}),

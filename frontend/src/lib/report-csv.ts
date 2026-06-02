@@ -1,7 +1,7 @@
 import type { Json } from "@/types/database";
 
 type SnapshotEntry = {
-  id: string;
+  entry_id: string;
   entry_date: string;
   duration_minutes: number;
   note: string;
@@ -15,7 +15,7 @@ function isSnapshotEntry(v: unknown): v is SnapshotEntry {
   return (
     typeof v === "object" &&
     v !== null &&
-    "id" in v &&
+    "entry_id" in v &&
     "entry_date" in v &&
     "duration_minutes" in v
   );
