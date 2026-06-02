@@ -139,6 +139,13 @@ export type Database = {
             foreignKeyName: "reports_generated_by_fkey"
             columns: ["generated_by"]
             isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -205,6 +212,13 @@ export type Database = {
             foreignKeyName: "time_entries_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -243,6 +257,13 @@ export type Database = {
             foreignKeyName: "time_entry_audit_logs_changed_by_fkey"
             columns: ["changed_by"]
             isOneToOne: false
+            referencedRelation: "members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entry_audit_logs_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -250,6 +271,16 @@ export type Database = {
       }
     }
     Views: {
+      members: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
+        }
+        Relationships: []
+      }
       pg_all_foreign_keys: {
         Row: {
           fk_columns: unknown[] | null
