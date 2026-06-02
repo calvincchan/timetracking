@@ -7,7 +7,7 @@ import routerProvider, {
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import { liveProvider } from "@refinedev/supabase";
-import { CalendarDays, FileText, Tag, UserPlus } from "lucide-react";
+import { CalendarDays, FileText, Tag, UserPlus, Users } from "lucide-react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import "./App.css";
 import { SignInForm } from "./components/refine-ui/form/sign-in-form";
@@ -17,6 +17,7 @@ import { useNotificationProvider } from "./components/refine-ui/notification/use
 import { ThemeProvider } from "./components/refine-ui/theme/theme-provider";
 import { CategoryCreate } from "./pages/categories/create";
 import { CategoryList } from "./pages/categories/list";
+import { MemberList } from "./pages/members/list";
 import { InviteCreate } from "./pages/invites/create";
 import { InviteList } from "./pages/invites/list";
 import { ReportCreate } from "./pages/reports/create";
@@ -71,6 +72,14 @@ function App() {
                   label: "Invites",
                   icon: <UserPlus size={16} />,
                   canDelete: true,
+                },
+              },
+              {
+                name: "members",
+                list: "/members",
+                meta: {
+                  label: "Members",
+                  icon: <Users size={16} />,
                 },
               },
               {
@@ -145,6 +154,18 @@ function App() {
                       fallback={<AccessDenied />}
                     >
                       <InviteCreate />
+                    </CanAccess>
+                  }
+                />
+                <Route
+                  path="members"
+                  element={
+                    <CanAccess
+                      resource="members"
+                      action="list"
+                      fallback={<AccessDenied />}
+                    >
+                      <MemberList />
                     </CanAccess>
                   }
                 />

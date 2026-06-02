@@ -5,6 +5,12 @@ import { acl } from "./access-control";
 // Update this list when adding new settings pages.
 const SETTINGS_RESOURCES: string[] = [];
 
+// Maps resource names to the DB permission resource they share.
+// "members" is backed by the members view but gated by profiles:read.
+const RESOURCE_ALIASES: Record<string, string> = {
+  members: "profiles",
+};
+
 export const accessControlProvider: AccessControlProvider = {
   can: async ({ resource, action }) => {
     await acl.ready();
@@ -16,7 +22,8 @@ export const accessControlProvider: AccessControlProvider = {
         : { can: false, reason: "No settings resources accessible." };
     }
 
-    const result = acl.can(resource ?? "", action);
+    const effectiveResource = RESOURCE_ALIASES[resource ?? ""] ?? resource ?? "";
+    const result = acl.can(effectiveResource, action);
     if (result) return { can: true };
 
     return {
