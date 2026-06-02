@@ -1,10 +1,9 @@
-import { EmptyCell } from "@/components/refine-ui/empty-cell";
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
+import { EmptyCell } from "@/components/refine-ui/empty-cell";
 import {
   ListView,
   ListViewHeader,
 } from "@/components/refine-ui/views/list-view";
-import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,12 +15,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { buildReportCsv, downloadCsv } from "@/lib/report-csv";
 import { supabaseClient } from "@/providers/supabase-client";
 import type { Tables } from "@/types/database";
 import { parseTimeEntrySnapshot } from "@/types/report-snapshot";
 import type { HttpError } from "@refinedev/core";
-import { useInvalidate, useCan } from "@refinedev/core";
+import { useCan, useInvalidate } from "@refinedev/core";
 import { useTable } from "@refinedev/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -64,7 +64,7 @@ function DownloadButton({ report }: { report: ReportRow }) {
 function DeleteReportButton({ report }: { report: ReportRow }) {
   const [saving, setSaving] = useState(false);
   const invalidate = useInvalidate();
-  const { data: canDelete } = useCan({ resource: "reports", action: "delete" });
+  const { data: canDelete } = useCan({ resource: "reports", action: "write" });
   const entryCount = parseTimeEntrySnapshot(report.time_entries_snapshot).length;
 
   if (!canDelete?.can) return null;
