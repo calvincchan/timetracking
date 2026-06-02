@@ -391,6 +391,20 @@ CREATE TABLE IF NOT EXISTS "public"."profiles" (
 ALTER TABLE "public"."profiles" OWNER TO "postgres";
 
 
+CREATE OR REPLACE VIEW "public"."members" AS
+ SELECT "p"."id",
+    "p"."full_name",
+    "p"."role",
+    "u"."email",
+    "u"."created_at"
+   FROM ("public"."profiles" "p"
+     JOIN "auth"."users" "u" ON (("u"."id" = "p"."id")))
+  WHERE "public"."has_role_permission"('profiles:read'::"public"."permissions");
+
+
+ALTER VIEW "public"."members" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."reports" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "generated_by" "uuid" NOT NULL,
@@ -8434,6 +8448,12 @@ GRANT ALL ON TABLE "public"."invites" TO "service_role";
 GRANT ALL ON TABLE "public"."profiles" TO "anon";
 GRANT ALL ON TABLE "public"."profiles" TO "authenticated";
 GRANT ALL ON TABLE "public"."profiles" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."members" TO "anon";
+GRANT ALL ON TABLE "public"."members" TO "authenticated";
+GRANT ALL ON TABLE "public"."members" TO "service_role";
 
 
 

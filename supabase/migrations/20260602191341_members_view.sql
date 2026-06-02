@@ -13,4 +13,6 @@ FROM public.profiles p
 JOIN auth.users u ON u.id = p.id
 WHERE public.has_role_permission('profiles:read'::public.permissions);
 
+ALTER VIEW public.members OWNER TO postgres;
+
 GRANT SELECT ON public.members TO authenticated;
