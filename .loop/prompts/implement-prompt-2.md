@@ -74,18 +74,9 @@ Invoke the `create-pr` skill to open the PR (it auto-detects the closing issue f
 Use `ExitWorktree`.
 
 Spawn a **background** Agent with this prompt (substitute the actual PR URL):
-> Run `/review` on PR {PR URL}. After the review completes, invoke the `/handoff` skill with this argument: "Received code review for PR {PR URL} — next session should run /receiving-code-review to process the findings. Implementation lives in worktree at .claude/worktrees/feat/issue-{number}-{slug}." Include the full review output in the handoff document. No other output needed.
+> Run `/review` on PR {PR URL}. After the review completes, run `/receiving-code-review` in this same session to process the findings. No handoff needed.
 
-The review runs async. The handoff doc is saved to the OS temp dir. Open it in a new session and run `/receiving-code-review` to process the findings.
-
-## Phase 6 - Return
-
-When done successfully, output
-
-```
-<handoff>{handoff file path}</handoff>
-<result>{short summary of the review}</result>
-```
+The review and receiving-code-review run async in the same BG session.
 
 ## Rules
 
