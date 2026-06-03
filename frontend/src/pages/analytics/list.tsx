@@ -1,15 +1,21 @@
+import { LogTimeDialog } from "@/pages/time-entries/log-time-dialog";
+import { useGetIdentity } from "@refinedev/core";
 import { endOfMonth, format, startOfMonth } from "date-fns";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { AnalyticsAllMembersCharts } from "./analytics-all-members-charts";
 import { AnalyticsDetailTable } from "./analytics-detail-table";
 import { AnalyticsFilterBar } from "./analytics-filter-bar";
 import { AnalyticsKpiCards } from "./analytics-kpi-cards";
 import { AnalyticsSingleMemberCharts } from "./analytics-single-member-charts";
+import type { AnalyticsEntry } from "./analytics-utils";
 import { useAnalyticsData } from "./use-analytics-data";
 
 export function AnalyticsList() {
   const [searchParams] = useSearchParams();
+  const { data: identity } = useGetIdentity<{ id: string; role: string }>();
+  const isSupervisor = identity?.role === "Supervisor";
+  const [amendEntry, setAmendEntry] = useState<AnalyticsEntry | null>(null);
 
   const { defaultFrom, defaultTo } = useMemo(() => ({
     defaultFrom: format(startOfMonth(new Date()), "yyyy-MM-dd"),
@@ -36,7 +42,18 @@ export function AnalyticsList() {
       {!!userId && (
         <AnalyticsSingleMemberCharts entries={entries} from={from} to={to} isLoading={isLoading} />
       )}
-      <AnalyticsDetailTable entries={entries} isLoading={isLoading} showMember={!userId} />
+      <AnalyticsDetailTable
+        entries={entries}
+        isLoading={isLoading}
+        showMember={!userId}
+        onAmend={isSupervisor ? setAmendEntry : undefined}
+      />
+      {amendEntry && (
+        <LogTimeDialog
+          entry={amendEntry}
+          onOpenChange={(open) => { if (!open) setAmendEntry(null); }}
+        />
+      )}
     </div>
   );
 }

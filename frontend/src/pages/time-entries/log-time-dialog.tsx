@@ -38,7 +38,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 type CategoryRow = Tables<"categories">;
-type TimeEntry = Tables<"time_entries">;
+type EntryForEdit = Pick<Tables<"time_entries">, "id" | "duration_minutes" | "entry_date" | "category_id" | "note">;
 
 type LogTimeForm = {
   date: Date;
@@ -55,7 +55,7 @@ export function LogTimeDialog({
   initialDate,
   onOpenChange,
 }: {
-  entry?: TimeEntry;
+  entry?: EntryForEdit;
   initialDate?: Date;
   onOpenChange: (open: boolean) => void;
 }) {
