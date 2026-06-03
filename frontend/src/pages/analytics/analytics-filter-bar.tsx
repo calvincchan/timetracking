@@ -19,7 +19,7 @@ import {
   subWeeks,
 } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { useSearchParams } from "react-router";
 
@@ -86,14 +86,21 @@ export function AnalyticsFilterBar() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [customOpen, setCustomOpen] = useState(false);
 
-  const defaultFrom = format(startOfMonth(new Date()), "yyyy-MM-dd");
-  const defaultTo = format(endOfMonth(new Date()), "yyyy-MM-dd");
+  const { defaultFrom, defaultTo } = useMemo(() => ({
+    defaultFrom: format(startOfMonth(new Date()), "yyyy-MM-dd"),
+    defaultTo: format(endOfMonth(new Date()), "yyyy-MM-dd"),
+  }), []);
 
-  const from = searchParams.get("from") ?? defaultFrom;
-  const to = searchParams.get("to") ?? defaultTo;
+  const rawFrom = searchParams.get("from") ?? defaultFrom;
+  const rawTo = searchParams.get("to") ?? defaultTo;
+
+  const isValidDateStr = (s: string) => !isNaN(new Date(s + "T00:00:00").getTime());
+  const from = isValidDateStr(rawFrom) ? rawFrom : defaultFrom;
+  const to = isValidDateStr(rawTo) ? rawTo : defaultTo;
+
   const userId = searchParams.get("user_id") ?? "";
 
-  const activePreset = detectPreset(from, to);
+  const activePreset = useMemo(() => detectPreset(from, to), [from, to]);
 
   const { result: membersResult } = useList<MemberRow>({
     resource: "members",
@@ -137,17 +144,17 @@ export function AnalyticsFilterBar() {
     });
   }
 
+  const fromDate = new Date(from + "T00:00:00");
+  const toDate = new Date(to + "T00:00:00");
+
   const customCalendarRange: DateRange | undefined =
     activePreset === "custom"
-      ? {
-          from: new Date(from + "T00:00:00"),
-          to: new Date(to + "T00:00:00"),
-        }
+      ? { from: fromDate, to: toDate }
       : undefined;
 
   const customLabel =
     activePreset === "custom"
-      ? `${format(new Date(from + "T00:00:00"), "MMM d")} – ${format(new Date(to + "T00:00:00"), "MMM d")}`
+      ? `${format(fromDate, "MMM d")} – ${format(toDate, "MMM d")}`
       : "Custom";
 
   const selectValue = userId || SELECT_ALL;
