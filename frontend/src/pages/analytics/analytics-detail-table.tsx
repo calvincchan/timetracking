@@ -20,7 +20,7 @@ import {
   type Column,
   type SortingState,
 } from "@tanstack/react-table";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { AnalyticsEntry } from "./analytics-utils";
@@ -66,7 +66,7 @@ export function AnalyticsDetailTable({ entries, isLoading, showMember }: Props) 
       columnHelper.accessor("entry_date", {
         id: "entry_date",
         header: ({ column }) => <SortHeader column={column} label="Date" />,
-        cell: ({ getValue }) => format(new Date(getValue() + "T00:00:00"), "MMM d, yyyy"),
+        cell: ({ getValue }) => format(parseISO(getValue()), "MMM d, yyyy"),
         size: 130,
       }),
       ...(showMember
@@ -102,6 +102,7 @@ export function AnalyticsDetailTable({ entries, isLoading, showMember }: Props) 
           return v ? v : <EmptyCell />;
         },
         enableSorting: false,
+        size: 9999,
       }),
     ],
     [showMember]
@@ -152,7 +153,7 @@ export function AnalyticsDetailTable({ entries, isLoading, showMember }: Props) 
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              Array.from({ length: pageSize < 1 ? 1 : Math.min(pageSize, 10) }).map((_, i) => (
+              Array.from({ length: Math.min(pageSize, 10) }).map((_, i) => (
                 <TableRow key={`skeleton-${i}`} aria-hidden="true">
                   {table.getAllLeafColumns().map((col) => (
                     <TableCell key={col.id} style={{ width: col.getSize() }}>
