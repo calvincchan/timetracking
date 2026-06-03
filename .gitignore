@@ -1,4 +1,2 @@
-.loop/worktrees/
-.loop/state.json
-.loop/logs/
+.loop/
 .claude/worktrees/
