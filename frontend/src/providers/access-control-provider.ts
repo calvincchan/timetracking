@@ -9,6 +9,7 @@ const SETTINGS_RESOURCES: string[] = [];
 // "members" is backed by the members view but gated by profiles:read.
 const RESOURCE_ALIASES: Record<string, string> = {
   members: "profiles",
+  analytics: "reports",
 };
 
 export const accessControlProvider: AccessControlProvider = {

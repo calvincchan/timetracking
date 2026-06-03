@@ -7,7 +7,7 @@ import routerProvider, {
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import { liveProvider } from "@refinedev/supabase";
-import { CalendarDays, FileText, Tag, UserPlus, Users } from "lucide-react";
+import { BarChart2, CalendarDays, FileText, Tag, UserPlus, Users } from "lucide-react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import "./App.css";
 import { SignInForm } from "./components/refine-ui/form/sign-in-form";
@@ -20,6 +20,7 @@ import { CategoryList } from "./pages/categories/list";
 import { MemberList } from "./pages/members/list";
 import { InviteCreate } from "./pages/invites/create";
 import { InviteList } from "./pages/invites/list";
+import { AnalyticsList } from "./pages/analytics/list";
 import { ReportCreate } from "./pages/reports/create";
 import { ReportList } from "./pages/reports/list";
 import { MemberWeekView } from "./pages/time-entries/list";
@@ -98,6 +99,14 @@ function App() {
                 meta: {
                   label: "Reports",
                   icon: <FileText size={16} />,
+                },
+              },
+              {
+                name: "analytics",
+                list: "/analytics",
+                meta: {
+                  label: "Analytics",
+                  icon: <BarChart2 size={16} />,
                 },
               },
             ]}
@@ -214,6 +223,18 @@ function App() {
                       fallback={<AccessDenied />}
                     >
                       <ReportCreate />
+                    </CanAccess>
+                  }
+                />
+                <Route
+                  path="analytics"
+                  element={
+                    <CanAccess
+                      resource="analytics"
+                      action="list"
+                      fallback={<AccessDenied />}
+                    >
+                      <AnalyticsList />
                     </CanAccess>
                   }
                 />
