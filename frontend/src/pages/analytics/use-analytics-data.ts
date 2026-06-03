@@ -1,3 +1,4 @@
+import { QUERY_KEYS } from "@/constants/query-keys";
 import { supabaseClient } from "@/providers/supabase-client";
 import type { Tables } from "@/types/database";
 import { useQuery } from "@tanstack/react-query";
@@ -35,7 +36,7 @@ async function fetchAnalyticsEntries(
 
 export function useAnalyticsData(from: string, to: string, userId?: string) {
   return useQuery({
-    queryKey: ["analytics-entries", from, to, userId ?? null],
+    queryKey: [QUERY_KEYS.analyticsEntries, from, to, userId ?? null],
     queryFn: () => fetchAnalyticsEntries(from, to, userId),
   });
 }

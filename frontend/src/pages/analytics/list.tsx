@@ -1,3 +1,4 @@
+import { QUERY_KEYS } from "@/constants/query-keys";
 import { LogTimeDialog } from "@/pages/time-entries/log-time-dialog";
 import { useGetIdentity } from "@refinedev/core";
 import { useQueryClient } from "@tanstack/react-query";
@@ -54,7 +55,7 @@ export function AnalyticsList() {
         <LogTimeDialog
           entry={amendEntry}
           onOpenChange={(open) => { if (!open) setAmendEntry(null); }}
-          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["analytics-entries"] })}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.analyticsEntries] })}
         />
       )}
     </div>
