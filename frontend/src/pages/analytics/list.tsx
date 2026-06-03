@@ -2,6 +2,7 @@ import { endOfMonth, format, startOfMonth } from "date-fns";
 import { useMemo } from "react";
 import { useSearchParams } from "react-router";
 import { AnalyticsAllMembersCharts } from "./analytics-all-members-charts";
+import { AnalyticsDetailTable } from "./analytics-detail-table";
 import { AnalyticsFilterBar } from "./analytics-filter-bar";
 import { AnalyticsKpiCards } from "./analytics-kpi-cards";
 import { AnalyticsSingleMemberCharts } from "./analytics-single-member-charts";
@@ -35,6 +36,7 @@ export function AnalyticsList() {
       {!!userId && (
         <AnalyticsSingleMemberCharts entries={entries} from={from} to={to} isLoading={isLoading} />
       )}
+      <AnalyticsDetailTable entries={entries} isLoading={isLoading} showMember={!userId} />
     </div>
   );
 }
