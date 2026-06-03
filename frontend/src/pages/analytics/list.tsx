@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router";
 import { AnalyticsAllMembersCharts } from "./analytics-all-members-charts";
 import { AnalyticsFilterBar } from "./analytics-filter-bar";
 import { AnalyticsKpiCards } from "./analytics-kpi-cards";
+import { AnalyticsSingleMemberCharts } from "./analytics-single-member-charts";
 import { useAnalyticsData } from "./use-analytics-data";
 
 export function AnalyticsList() {
@@ -30,6 +31,9 @@ export function AnalyticsList() {
       <AnalyticsKpiCards entries={entries} userId={userId} isLoading={isLoading} />
       {!userId && (
         <AnalyticsAllMembersCharts entries={entries} from={from} to={to} isLoading={isLoading} />
+      )}
+      {!!userId && (
+        <AnalyticsSingleMemberCharts entries={entries} from={from} to={to} isLoading={isLoading} />
       )}
     </div>
   );
