@@ -19,6 +19,7 @@ function makeEntry(overrides: Partial<AnalyticsEntry> = {}): AnalyticsEntry {
     user_full_name: "Alice",
     category_id: "c1",
     category_name: "Dev",
+    note: "",
     ...overrides,
   };
 }

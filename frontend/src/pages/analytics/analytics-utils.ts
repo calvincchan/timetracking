@@ -9,6 +9,7 @@ export type AnalyticsEntry = {
   user_full_name: string;
   category_id: string | null;
   category_name: string;
+  note: string;
 };
 
 export type AllMembersKpi = {

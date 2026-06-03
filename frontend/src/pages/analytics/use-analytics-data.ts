@@ -10,7 +10,7 @@ async function fetchAnalyticsEntries(
 ): Promise<AnalyticsEntry[]> {
   let query = supabaseClient
     .from("time_entries")
-    .select("id, entry_date, duration_minutes, user_id, profiles(full_name), categories(name), category_id")
+    .select("id, entry_date, duration_minutes, note, user_id, profiles(full_name), categories(name), category_id")
     .gte("entry_date", from)
     .lte("entry_date", to);
 
@@ -29,6 +29,7 @@ async function fetchAnalyticsEntries(
     category_id: row.category_id,
     user_full_name: (row.profiles as Pick<Tables<"profiles">, "full_name"> | null)?.full_name ?? "",
     category_name: (row.categories as Pick<Tables<"categories">, "name"> | null)?.name ?? "",
+    note: row.note,
   }));
 }
 
