@@ -1,10 +1,32 @@
+import { endOfMonth, format, startOfMonth } from "date-fns";
+import { useMemo } from "react";
+import { useSearchParams } from "react-router";
 import { AnalyticsFilterBar } from "./analytics-filter-bar";
+import { AnalyticsKpiCards } from "./analytics-kpi-cards";
+import { useAnalyticsData } from "./use-analytics-data";
 
 export function AnalyticsList() {
+  const [searchParams] = useSearchParams();
+
+  const { defaultFrom, defaultTo } = useMemo(() => ({
+    defaultFrom: format(startOfMonth(new Date()), "yyyy-MM-dd"),
+    defaultTo: format(endOfMonth(new Date()), "yyyy-MM-dd"),
+  }), []);
+
+  const isValidDateStr = (s: string) => !isNaN(new Date(s + "T00:00:00").getTime());
+  const rawFrom = searchParams.get("from") ?? defaultFrom;
+  const rawTo = searchParams.get("to") ?? defaultTo;
+  const from = isValidDateStr(rawFrom) ? rawFrom : defaultFrom;
+  const to = isValidDateStr(rawTo) ? rawTo : defaultTo;
+  const userId = searchParams.get("user_id") ?? "";
+
+  const { data: entries = [], isLoading } = useAnalyticsData(from, to, userId || undefined);
+
   return (
     <div className="flex flex-col gap-4 p-6">
       <h1 className="text-2xl font-semibold">Analytics</h1>
       <AnalyticsFilterBar />
+      <AnalyticsKpiCards entries={entries} userId={userId} isLoading={isLoading} />
     </div>
   );
 }
