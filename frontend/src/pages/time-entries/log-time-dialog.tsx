@@ -54,10 +54,12 @@ export function LogTimeDialog({
   entry,
   initialDate,
   onOpenChange,
+  onSuccess,
 }: {
   entry?: EntryForEdit;
   initialDate?: Date;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }) {
   const isEdit = entry !== undefined;
   const [saving, setSaving] = useState(false);
@@ -153,6 +155,7 @@ export function LogTimeDialog({
         {
           onSuccess: () => {
             toast.success("Time entry updated.", { richColors: true });
+            onSuccess?.();
             onOpenChange(false);
           },
           onSettled: () => setSaving(false),

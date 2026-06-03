@@ -1,5 +1,6 @@
 import { LogTimeDialog } from "@/pages/time-entries/log-time-dialog";
 import { useGetIdentity } from "@refinedev/core";
+import { useQueryClient } from "@tanstack/react-query";
 import { endOfMonth, format, startOfMonth } from "date-fns";
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
@@ -16,6 +17,7 @@ export function AnalyticsList() {
   const { data: identity } = useGetIdentity<{ id: string; role: string }>();
   const isSupervisor = identity?.role === "Supervisor";
   const [amendEntry, setAmendEntry] = useState<AnalyticsEntry | null>(null);
+  const queryClient = useQueryClient();
 
   const { defaultFrom, defaultTo } = useMemo(() => ({
     defaultFrom: format(startOfMonth(new Date()), "yyyy-MM-dd"),
@@ -52,6 +54,7 @@ export function AnalyticsList() {
         <LogTimeDialog
           entry={amendEntry}
           onOpenChange={(open) => { if (!open) setAmendEntry(null); }}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ["analytics-entries"] })}
         />
       )}
     </div>
