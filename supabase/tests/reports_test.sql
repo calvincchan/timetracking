@@ -88,22 +88,33 @@ SELECT throws_ok(
     'generate_report: raises when no entries match');
 
 -- Call generate_report as Supervisor (auth.uid() already set via jwt.claims above)
+CREATE TEMP TABLE _rpt_report AS
+    SELECT public.generate_report('2026-01-01', '2026-01-31') AS id;
+GRANT SELECT ON _rpt_report TO authenticated;
+
 SELECT ok(
-    public.generate_report('2026-01-01', '2026-01-31') IS NOT NULL,
+    (SELECT id FROM _rpt_report) IS NOT NULL,
     'generate_report: returns a non-null report id');
 
 SELECT is(
-    (SELECT COUNT(*)::int FROM public.time_entries WHERE is_locked = true),
+    (SELECT COUNT(*)::int FROM public.time_entries
+     WHERE id IN (
+         'e1000000-0000-0000-0000-000000000001',
+         'e2000000-0000-0000-0000-000000000002',
+         'e3000000-0000-0000-0000-000000000003'
+     ) AND is_locked = true),
     3,
     'generate_report: locks all matched entries');
 
 SELECT is(
-    (SELECT time_entries_snapshot -> 0 ->> 'user_full_name' FROM public.reports LIMIT 1),
+    (SELECT time_entries_snapshot -> 0 ->> 'user_full_name'
+     FROM public.reports WHERE id = (SELECT id FROM _rpt_report)),
     'Test Supervisor',
     'generate_report: snapshot entries include user_full_name');
 
 SELECT is(
-    (SELECT time_entries_snapshot -> 0 ->> 'category_name' FROM public.reports LIMIT 1),
+    (SELECT time_entries_snapshot -> 0 ->> 'category_name'
+     FROM public.reports WHERE id = (SELECT id FROM _rpt_report)),
     'Admin',
     'generate_report: snapshot entries include category_name');
 
@@ -151,7 +162,8 @@ RESET ROLE;
 -- Supervisor: SELECT returns the generated report
 SELECT pg_temp.as_role('Supervisor');
 SELECT is(
-    (SELECT COUNT(*)::int FROM public.reports),
+    (SELECT COUNT(*)::int FROM public.reports
+     WHERE id = (SELECT id FROM _rpt_report)),
     1,
     'reports_select: Supervisor can SELECT reports');
 RESET ROLE;
