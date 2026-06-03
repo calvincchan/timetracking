@@ -1,0 +1,39 @@
+import { supabaseClient } from "@/providers/supabase-client";
+import { useQuery } from "@tanstack/react-query";
+import type { AnalyticsEntry } from "./analytics-utils";
+
+async function fetchAnalyticsEntries(
+  from: string,
+  to: string,
+  userId?: string,
+): Promise<AnalyticsEntry[]> {
+  let query = supabaseClient
+    .from("time_entries")
+    .select("id, entry_date, duration_minutes, user_id, profiles(full_name), categories(name), category_id")
+    .gte("entry_date", from)
+    .lte("entry_date", to);
+
+  if (userId) {
+    query = query.eq("user_id", userId);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    entry_date: row.entry_date,
+    duration_minutes: row.duration_minutes,
+    user_id: row.user_id,
+    category_id: row.category_id,
+    user_full_name: (row.profiles as { full_name: string } | null)?.full_name ?? "",
+    category_name: (row.categories as { name: string } | null)?.name ?? "",
+  }));
+}
+
+export function useAnalyticsData(from: string, to: string, userId?: string) {
+  return useQuery({
+    queryKey: ["analytics-entries", from, to, userId ?? null],
+    queryFn: () => fetchAnalyticsEntries(from, to, userId),
+  });
+}
