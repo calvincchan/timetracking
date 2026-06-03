@@ -62,7 +62,7 @@ export function AnalyticsSingleMemberCharts({ entries, from, to, isLoading }: Pr
               <Skeleton className="h-4 w-32" />
             </CardHeader>
             <CardContent>
-              <Skeleton className="h-56 w-full" />
+              <Skeleton className="h-64 w-full" />
             </CardContent>
           </Card>
         ))}
@@ -129,7 +129,7 @@ export function AnalyticsSingleMemberCharts({ entries, from, to, isLoading }: Pr
                 innerRadius="50%"
                 outerRadius="80%"
               >
-                {pieData.map((_d, i) => (
+                {pieData.map((_, i) => (
                   <Cell key={`slice${i}`} fill={`var(--color-slice${i})`} />
                 ))}
               </Pie>
