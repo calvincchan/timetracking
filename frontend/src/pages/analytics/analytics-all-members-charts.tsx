@@ -39,6 +39,7 @@ export function AnalyticsAllMembersCharts({ entries, from, to, isLoading }: Prop
     memberNames.forEach((name, i) => {
       config[`member${i}`] = {
         label: name,
+        // Cycles --chart-1…--chart-5; members beyond 5 share a colour
         color: `var(--chart-${(i % 5) + 1})`,
       };
     });
@@ -46,24 +47,43 @@ export function AnalyticsAllMembersCharts({ entries, from, to, isLoading }: Prop
   }, [memberNames]);
 
   const stackedData = useMemo(() => {
-    const raw = buildStackedBarSeries(entries, from, to);
-    return raw.map((datum) => {
-      const row: Record<string, string | number> = { bucket: datum.bucket };
-      for (const [k, v] of Object.entries(datum)) {
-        if (k === "bucket") continue;
-        const safeKey = memberKeyMap.get(k);
-        if (safeKey !== undefined) row[safeKey] = v;
-      }
-      return row;
-    });
+    try {
+      const raw = buildStackedBarSeries(entries, from, to);
+      return raw.map((datum) => {
+        const row: Record<string, string | number> = { bucket: datum.bucket };
+        for (const [k, v] of Object.entries(datum)) {
+          if (k === "bucket") continue;
+          const safeKey = memberKeyMap.get(k);
+          // bucket is excluded above; remaining values are numeric hours
+          if (safeKey !== undefined) row[safeKey] = v as number;
+        }
+        return row;
+      });
+    } catch (err) {
+      console.error("AnalyticsAllMembersCharts: failed to build stacked series", err);
+      return [];
+    }
   }, [entries, from, to, memberKeyMap]);
 
-  const categoryData = useMemo(() => buildHorizontalBarSeries(entries), [entries]);
+  const categoryData = useMemo(() => {
+    try {
+      return buildHorizontalBarSeries(entries);
+    } catch (err) {
+      console.error("AnalyticsAllMembersCharts: failed to build category series", err);
+      return [];
+    }
+  }, [entries]);
 
   const categoryChartConfig = useMemo<ChartConfig>(
     () => ({ hours: { label: "Hours", color: "var(--chart-1)" } }),
     [],
   );
+
+  const categoryYAxisWidth = useMemo(() => {
+    if (categoryData.length === 0) return 80;
+    const longest = Math.max(...categoryData.map((d) => d.category.length));
+    return Math.max(80, Math.min(180, longest * 7));
+  }, [categoryData]);
 
   if (isLoading) {
     return (
@@ -88,7 +108,22 @@ export function AnalyticsAllMembersCharts({ entries, from, to, isLoading }: Prop
     );
   }
 
-  if (entries.length === 0) return null;
+  if (entries.length === 0) {
+    return (
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {(["Hours by Member", "Hours by Category"] as const).map((title) => (
+          <Card key={title}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex h-64 items-center justify-center">
+              <p className="text-sm text-muted-foreground">No data for this period.</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -132,7 +167,7 @@ export function AnalyticsAllMembersCharts({ entries, from, to, isLoading }: Prop
                 dataKey="category"
                 type="category"
                 tick={{ fontSize: 12 }}
-                width={120}
+                width={categoryYAxisWidth}
               />
               <XAxis type="number" unit="h" tick={{ fontSize: 12 }} />
               <ChartTooltip content={<ChartTooltipContent />} />
