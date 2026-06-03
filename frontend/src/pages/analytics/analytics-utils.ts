@@ -205,15 +205,19 @@ export function buildDailyBarSeries(
   from: string,
   to: string,
 ): DailyBarDatum[] {
-  const minutesByDate = new Map<string, number>();
+  const buckets = buildTimeBuckets(from, to);
+  const minutesByBucket = new Map<string, number>();
+  for (const b of buckets) minutesByBucket.set(b.key, 0);
+
   for (const e of entries) {
-    minutesByDate.set(e.entry_date, (minutesByDate.get(e.entry_date) ?? 0) + e.duration_minutes);
+    const bucket = buckets.find((b) => e.entry_date >= b.from && e.entry_date <= b.to);
+    if (!bucket) continue;
+    minutesByBucket.set(bucket.key, (minutesByBucket.get(bucket.key) ?? 0) + e.duration_minutes);
   }
 
-  const buckets = buildTimeBuckets(from, to);
   return buckets.map((b) => ({
     date: b.label,
-    hours: toHours(minutesByDate.get(b.key) ?? 0),
+    hours: toHours(minutesByBucket.get(b.key) ?? 0),
   }));
 }
 

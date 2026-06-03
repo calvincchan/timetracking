@@ -217,6 +217,16 @@ describe("buildDailyBarSeries", () => {
     const series = buildDailyBarSeries([], "2026-01-05", "2026-01-07");
     expect(series.every((d) => d.hours === 0)).toBe(true);
   });
+
+  it("accumulates entry hours into weekly bucket when range >31 days", () => {
+    // Jan 1 – Feb 1 is 32 inclusive days → weekly buckets
+    // Jan 14 falls in the week Jan 11–17
+    const entries = [makeEntry({ entry_date: "2026-01-14", duration_minutes: 120 })];
+    const series = buildDailyBarSeries(entries, "2026-01-01", "2026-02-01");
+    const nonZero = series.filter((d) => d.hours > 0);
+    expect(nonZero).toHaveLength(1);
+    expect(nonZero[0].hours).toBe(2);
+  });
 });
 
 // ── buildPieSeries ────────────────────────────────────────────────────────────
