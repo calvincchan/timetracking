@@ -38,7 +38,7 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 type CategoryRow = Tables<"categories">;
-type TimeEntry = Tables<"time_entries">;
+type EntryForEdit = Pick<Tables<"time_entries">, "id" | "duration_minutes" | "entry_date" | "category_id" | "note">;
 
 type LogTimeForm = {
   date: Date;
@@ -54,10 +54,12 @@ export function LogTimeDialog({
   entry,
   initialDate,
   onOpenChange,
+  onSuccess,
 }: {
-  entry?: TimeEntry;
+  entry?: EntryForEdit;
   initialDate?: Date;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }) {
   const isEdit = entry !== undefined;
   const [saving, setSaving] = useState(false);
@@ -153,6 +155,7 @@ export function LogTimeDialog({
         {
           onSuccess: () => {
             toast.success("Time entry updated.", { richColors: true });
+            onSuccess?.();
             onOpenChange(false);
           },
           onSettled: () => setSaving(false),

@@ -27,7 +27,7 @@ import {
   type DayGroup,
   type WeekEntry,
 } from "@/lib/week-utils";
-import { useDelete, useList } from "@refinedev/core";
+import { useDelete, useGetIdentity, useList } from "@refinedev/core";
 import { parseISO } from "date-fns";
 import { ChevronLeft, ChevronRight, Lock, Pencil, Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -146,8 +146,15 @@ export function MemberWeekView() {
   const [deleting, setDeleting] = useState(false);
 
   const { mutate: deleteTimeEntry } = useDelete();
+  const { data: identity } = useGetIdentity<{ id: string }>();
 
-  const filters = useMemo(() => weekRangeFilters(weekStart), [weekStart]);
+  const filters = useMemo(
+    () => [
+      ...weekRangeFilters(weekStart),
+      { field: "user_id", operator: "eq" as const, value: identity?.id },
+    ],
+    [weekStart, identity?.id],
+  );
 
   const { result, query } = useList<WeekEntry>({
     resource: "time_entries",
@@ -155,6 +162,7 @@ export function MemberWeekView() {
     sorters: [{ field: "entry_date", order: "asc" }],
     pagination: { mode: "off" },
     meta: { select: "*, category:categories(name)" },
+    queryOptions: { enabled: !!identity?.id },
   });
 
   const days = useMemo(

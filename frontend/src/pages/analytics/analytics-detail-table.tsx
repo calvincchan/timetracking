@@ -1,5 +1,6 @@
 import { DataTablePagination } from "@/components/refine-ui/data-table/data-table-pagination";
 import { EmptyCell } from "@/components/refine-ui/empty-cell";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -21,7 +22,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table";
 import { format, parseISO } from "date-fns";
-import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronsUpDown, Pencil } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { AnalyticsEntry } from "./analytics-utils";
 
@@ -52,9 +53,10 @@ type Props = {
   entries: AnalyticsEntry[];
   isLoading: boolean;
   showMember: boolean;
+  onAmend?: (entry: AnalyticsEntry) => void;
 };
 
-export function AnalyticsDetailTable({ entries, isLoading, showMember }: Props) {
+export function AnalyticsDetailTable({ entries, isLoading, showMember, onAmend }: Props) {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "entry_date", desc: true },
   ]);
@@ -103,8 +105,28 @@ export function AnalyticsDetailTable({ entries, isLoading, showMember }: Props) 
         },
         enableSorting: false,
       }),
+      ...(onAmend
+        ? [
+            columnHelper.display({
+              id: "actions",
+              size: 48,
+              cell: ({ row }) => (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-7"
+                  aria-label="Amend entry"
+                  onClick={() => onAmend(row.original)}
+                >
+                  <Pencil className="size-3.5" />
+                </Button>
+              ),
+            }),
+          ]
+        : []),
     ],
-    [showMember]
+    [showMember, onAmend]
   );
 
   const table = useReactTable({
