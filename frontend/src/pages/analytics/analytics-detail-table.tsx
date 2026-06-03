@@ -102,7 +102,6 @@ export function AnalyticsDetailTable({ entries, isLoading, showMember }: Props) 
           return v ? v : <EmptyCell />;
         },
         enableSorting: false,
-        size: 9999,
       }),
     ],
     [showMember]
