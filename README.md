@@ -1,6 +1,11 @@
 # Timetracking
 
-Internal time-tracking app for teams. Built with Refine v5, Supabase, and shadcn/ui.
+Open-source team time-tracking app. Built with Refine v5, Supabase, and shadcn/ui.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-org/timetracking&root-directory=frontend&env=VITE_SUPABASE_URL,VITE_SUPABASE_ANON_KEY&envDescription=Supabase%20project%20URL%20and%20anon%20key%20from%20Project%20Settings%20%E2%86%92%20API)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
+> **Deploying to production?** See [DEPLOYING.md](./DEPLOYING.md) for Supabase Cloud setup, SMTP config, and Vercel/Cloudflare/Docker hosting options.
 
 ---
 
