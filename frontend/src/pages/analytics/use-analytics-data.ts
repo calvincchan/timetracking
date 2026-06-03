@@ -1,4 +1,5 @@
 import { supabaseClient } from "@/providers/supabase-client";
+import type { Tables } from "@/types/database";
 import { useQuery } from "@tanstack/react-query";
 import type { AnalyticsEntry } from "./analytics-utils";
 
@@ -26,8 +27,8 @@ async function fetchAnalyticsEntries(
     duration_minutes: row.duration_minutes,
     user_id: row.user_id,
     category_id: row.category_id,
-    user_full_name: (row.profiles as { full_name: string } | null)?.full_name ?? "",
-    category_name: (row.categories as { name: string } | null)?.name ?? "",
+    user_full_name: (row.profiles as Pick<Tables<"profiles">, "full_name"> | null)?.full_name ?? "",
+    category_name: (row.categories as Pick<Tables<"categories">, "name"> | null)?.name ?? "",
   }));
 }
 

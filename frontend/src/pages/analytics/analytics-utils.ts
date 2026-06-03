@@ -77,7 +77,7 @@ export function computeAllMembersKpi(entries: AnalyticsEntry[]): AllMembersKpi {
 
   const totalHours = toHours(totalMinutes);
   const avgHoursPerMember = activeMemberCount > 0
-    ? toHours(Math.round(totalMinutes / activeMemberCount))
+    ? toHours(totalMinutes / activeMemberCount)
     : 0;
 
   return {
@@ -101,7 +101,7 @@ export function computeSingleMemberKpi(entries: AnalyticsEntry[]): SingleMemberK
 
   const totalHours = toHours(totalMinutes);
   const avgHoursPerDay = daysLogged > 0
-    ? toHours(Math.round(totalMinutes / daysLogged))
+    ? toHours(totalMinutes / daysLogged)
     : 0;
 
   return {
@@ -143,7 +143,7 @@ export function buildTimeBuckets(from: string, to: string): TimeBucket[] {
     while (cur <= toDate) {
       const weekFrom = cur;
       const weekTo = addDays(cur, 6);
-      const key = format(weekFrom, "yyyy-'W'ww");
+      const key = format(weekFrom, "yyyy-'W'II");
       const label = `${format(weekFrom, "MMM d")}–${format(weekTo, "MMM d")}`;
       buckets.push({
         key,

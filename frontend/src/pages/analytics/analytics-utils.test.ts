@@ -61,6 +61,16 @@ describe("computeAllMembersKpi", () => {
     expect(kpi.activeMemberCount).toBe(0);
     expect(kpi.avgHoursPerMember).toBe(0);
   });
+
+  it("avgHoursPerMember is not pre-rounded before toHours", () => {
+    // 100 min / 3 members = 33.333…min; toHours(33.333) = 0.56, not toHours(33) = 0.55
+    const kpi = computeAllMembersKpi([
+      makeEntry({ user_id: "u1", duration_minutes: 34 }),
+      makeEntry({ id: "e2", user_id: "u2", duration_minutes: 33 }),
+      makeEntry({ id: "e3", user_id: "u3", duration_minutes: 33 }),
+    ]);
+    expect(kpi.avgHoursPerMember).toBe(0.56);
+  });
 });
 
 // ── computeSingleMemberKpi ────────────────────────────────────────────────────
@@ -93,6 +103,16 @@ describe("computeSingleMemberKpi", () => {
     expect(kpi.totalHours).toBe(0);
     expect(kpi.daysLogged).toBe(0);
     expect(kpi.avgHoursPerDay).toBe(0);
+  });
+
+  it("avgHoursPerDay is not pre-rounded before toHours", () => {
+    // 100 min / 3 days = 33.333…min; toHours(33.333) = 0.56, not toHours(33) = 0.55
+    const kpi = computeSingleMemberKpi([
+      makeEntry({ id: "e1", entry_date: "2026-01-05", duration_minutes: 34 }),
+      makeEntry({ id: "e2", entry_date: "2026-01-06", duration_minutes: 33 }),
+      makeEntry({ id: "e3", entry_date: "2026-01-07", duration_minutes: 33 }),
+    ]);
+    expect(kpi.avgHoursPerDay).toBe(0.56);
   });
 });
 
@@ -176,6 +196,15 @@ describe("buildStackedBarSeries", () => {
     ];
     const series = buildStackedBarSeries(entries, "2026-01-05", "2026-01-05");
     expect(series[0]["Alice"]).toBe(2);
+  });
+
+  it("places entry in the correct weekly bucket for a >31-day range", () => {
+    // Jan 1 – Feb 1 → weekly; Jan 14 falls in the week containing Jan 11–17
+    const entries = [makeEntry({ entry_date: "2026-01-14", duration_minutes: 120 })];
+    const series = buildStackedBarSeries(entries, "2026-01-01", "2026-02-01");
+    const nonEmpty = series.filter((d) => "Alice" in d);
+    expect(nonEmpty).toHaveLength(1);
+    expect(nonEmpty[0]["Alice"]).toBe(2);
   });
 });
 
